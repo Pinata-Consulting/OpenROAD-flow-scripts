@@ -69,15 +69,40 @@ set sdc_version 2.0
 set clk_port [get_ports $clk_port_name]
 create_clock -period $clk_period -waveform [list 0 [expr $clk_period / 2]] -name $clk_name $clk_port
 
-set non_clk_inputs  [lsearch -inline -all -not -exact [all_inputs] $clk_port]
-set all_register_outputs [get_pins -of_objects [all_registers] -filter {direction == output}]
+## set all_registered_outputs [get_ports * -of_objects [get_cells * -hierarchical -filter {is_sequential == true}] -filter {direction == output}]
 
 # Optimization targets: overconstrain by default and
 # leave refinements to a more design specific constraints.sdc file.
 #
-# Minimum time for io-io, io-reg, reg-io paths in macro is on
-# the order of 80ps for a small macro on ASAP7.
-set max_delay 80
-set_max_delay $max_delay -from $non_clk_inputs -to [all_registers]
-set_max_delay $max_delay -from $all_register_outputs -to [all_outputs]
-set_max_delay $max_delay -from $non_clk_inputs -to [all_outputs]
+# Set external maximum delays to all non clock inputs to half the
+# clock period to allow for / constrain to similar internal delays.
+set max_delay_value [expr $clk_period / 4]
+# External minimum delay must be something more than worst clock skew
+# to avoid insertion of delay elements in the input paths.
+set min_delay_value 10
+
+# Set external max and min delays for all inputs (to registers and
+# combinatorial output ports)
+# Doesn't work - tcl command lsearch not supported in SDC
+# set all_non_clk_inputs [lsearch -inline -all -not -exact all_inputs $clk_port]
+
+set all_non_clk_inputs {}
+foreach input [all_inputs] {
+    if {[get_property $input name] != [get_property $clk_port name]} {
+        lappend all_non_clk_inputs $input
+    }
+}
+puts "Number of inputs: [llength [all_inputs]]"
+puts "Number of non clock inputs: [llength $all_non_clk_inputs]"
+
+foreach input $all_non_clk_inputs {
+    set_input_delay -max $max_delay_value -clock $clk_port $input
+    set_input_delay -min $min_delay_value -clock $clk_port $input
+}
+# Set external max delays from all registered output ports to allow
+# for / constrain to similar internal delays from last register to output.
+# Don't set min delay for registered output ports as this may introduce
+# delay elements in the output paths. 
+foreach output [all_outputs] {
+    set_output_delay -max $max_delay_value -clock $clk_port $output 
+}
