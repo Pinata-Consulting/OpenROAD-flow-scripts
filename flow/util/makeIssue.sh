@@ -8,6 +8,7 @@ ISSUE_TAG=${ISSUE_TAG:-"${DESIGN_NICKNAME}_${PLATFORM}_${FLOW_VARIANT}_${current
 ISSUE_CP_DESIGN_FILE_VARS="SDC_FILE \
                            VERILOG_FILES \
                            CACHED_NETLIST \
+                           CACHED_FLATTEN_POLICY \
                            FOOTPRINT_TCL \
                            FOOTPRINT \
                            SIG_MAP_FILE \

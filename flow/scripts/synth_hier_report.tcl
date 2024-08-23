@@ -1,4 +1,9 @@
 proc write_flatten_policy {} {
+  if {[info exist ::env(CACHED_FLATTEN_POLICY)]} {
+    exec cp $::env(CACHED_FLATTEN_POLICY) $::env(SYNTH_STOP_MODULE_SCRIPT)
+    return
+  }
+
   if { ![info exist ::env(SYNTH_HIERARCHICAL)] || $::env(SYNTH_HIERARCHICAL) == 0 } {
     set out_script_ptr [open $::env(SYNTH_STOP_MODULE_SCRIPT) w]
     close $out_script_ptr
