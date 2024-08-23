@@ -30,3 +30,6 @@ export PWR_NETS_VOLTAGES      =
 
 # The macros are very small so use a smaller halo
 export MACRO_PLACE_HALO        ?= 5 5
+
+export CACHED_FLATTEN_POLICY = ./designs/$(PLATFORM)/$(DESIGN_NICKNAME)/flatten.tcl
+export ADDITIONAL_FILES = $(CACHED_FLATTEN_POLICY)
