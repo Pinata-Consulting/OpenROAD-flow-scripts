@@ -52,6 +52,10 @@ RECOVER_POWER:
   default: 0
 SKIP_INCREMENTAL_REPAIR:
   default: 0
+  description: >
+    Skip incremental repair in global route.
+  stages:
+    - grt
 DETAILED_METRICS:
   description: >
     If set, then calls report_metrics prior to repair operations in the CTS
@@ -259,7 +263,7 @@ GUI_TIMING:
     Load timing information when opening GUI. For large designs, this can
     be quite time consuming. Useful to disable when investigating non-timing
     aspects like floorplan, placement, routing, etc.
-  value: 1
+  default: 1
 FILL_CELLS:
   description: >
     Fill cells are used to fill empty sites. If not set or empty, fill cell insertion is skipped.

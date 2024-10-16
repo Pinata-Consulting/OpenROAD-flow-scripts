@@ -41,12 +41,21 @@ proc read_timing {input_file} {
   if {$design_stage >= 6 && [file exist $::env(RESULTS_DIR)/6_final.spef]} {
     log_cmd read_spef $::env(RESULTS_DIR)/6_final.spef
   } elseif {$design_stage >= 5} {
-    log_cmd estimate_parasitics -global_routing
+    if { [grt::have_routes] } {
+      log_cmd estimate_parasitics -global_routing
+    } else {
+      puts "No global routing results available, skipping estimate_parasitics"
+      puts "Load $::global_route_congestion_report for details"
+    }
   } elseif {$design_stage >= 3} {
     log_cmd estimate_parasitics -placement
   }
 
   fast_route
+
+  puts "Populating timing paths..."
+  # Warm up OpenSTA, so clicking on timing related buttons reacts faster
+  set _tmp [find_timing_paths]
 }
 
 if {[env_var_equals GUI_TIMING 1]} {
