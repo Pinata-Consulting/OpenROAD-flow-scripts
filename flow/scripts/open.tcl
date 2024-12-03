@@ -60,6 +60,37 @@ proc read_timing {input_file} {
 if {[env_var_equals GUI_TIMING 1]} {
   puts "GUI_TIMING=1 reading timing, takes a little while for large designs..."
   read_timing $input_file
+
+  puts "Prerendering..."
+  gui::save_display_controls
+
+  set height [[[ord::get_db_block] getBBox] getDY]
+  set height [ord::dbu_to_microns $height]
+  set resolution [expr $height / 1000]
+
+  foreach clock [get_clocks *] {
+    if { [llength [get_property $clock sources]] > 0 } {
+      set clock_name [get_name $clock]
+      save_clocktree_image -clock $clock_name \
+          -width 1024 -height 1024 \
+          $::env(REPORTS_DIR)/cts_$clock_name.webp
+      gui::select_clockviewer_clock $clock_name
+      save_image -resolution $resolution $::env(REPORTS_DIR)/cts_${clock_name}_layout.webp
+    }
+  }
+
+  foreach heatmap {Placement IRDrop Routing RUDY Power} {
+    if {[string equal $heatmap "IRDrop"] || [env_var_exists_and_non_empty PWR_NETS_VOLTAGES]} {
+      catch {
+        gui::set_heatmap $heatmap rebuild 1
+        gui::dump_heatmap $heatmap $::env(REPORTS_DIR)/dummy.png
+      } error
+    }
+  }
+
+  gui::clear_highlights -1
+  gui::clear_selections
+  gui::restore_display_controls
 }
 
 fast_route
@@ -67,5 +98,5 @@ fast_route
 if {[env_var_equals GUI_SHOW 1]} {
   # Show the GUI when it is ready; it is unresponsive(with modal requesters
   # saying it is unresponsive) until everything is loaded
-  gui::unminimize
+  log_cmd gui::unminimize
 }
