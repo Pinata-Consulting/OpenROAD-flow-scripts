@@ -94,7 +94,9 @@ proc global_route_helper {} {
   }
 
   puts "Estimate parasitics..."
-  estimate_parasitics -global_routing
+  estimate_parasitics -global_routing -spef_file $::env(RESULTS_DIR)/5_1_grt.spef
+  write_verilog $::env(RESULTS_DIR)/5_1_grt.v
+
 
   report_metrics 5 "global route"
 
