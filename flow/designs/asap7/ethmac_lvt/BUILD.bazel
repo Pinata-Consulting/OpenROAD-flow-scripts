@@ -1,0 +1,81 @@
+load("@bazel-orfs//:sweep.bzl", "orfs_sweep")
+load("@orfs-pip//:requirements.bzl", "requirement")
+
+# Format densities, rounding to 2 decimal places.
+PLACEMENT_DENSITIES = [str(0.60 + x * 0.01 + 0.005)[:4] for x in range(20)]
+#PLACEMENT_DENSITIES.remove("0.67")
+
+orfs_sweep(
+    name = "ethmac_lvt",
+    arguments = {
+        # Faster builds
+        "SKIP_INCREMENTAL_REPAIR": "1",
+        "GPL_TIMING_DRIVEN": "0",
+        # Various
+        "SDC_FILE": "$(location :constraint.sdc)",
+        "ABC_AREA": "1",
+        "CORE_UTILIZATION": "40",
+        "CORE_ASPECT_RATIO": "1",
+        "CORE_MARGIN": "2",
+        "PLACE_DENSITY": "0.60",
+        "ASAP7_USELVT": "1",
+        "RECOVER_POWER": "1",
+        "ADDITIONAL_LIBS": "$(LIB_DIR)/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz \
+                                $(LIB_DIR)/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz \
+			        $(LIB_DIR)/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz \
+			        $(LIB_DIR)/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz \
+			        $(LIB_DIR)/asap7sc7p5t_SEQ_RVT_FF_nldm_220123.lib",
+        "ADDITIONAL_GDS": "$(PLATFORM_DIR)/gds/asap7sc7p5t_28_R_220121a.gds",
+        "ADDITIONAL_LEFS": "$(PLATFORM_DIR)/lef/asap7sc7p5t_28_R_1x_220121a.lef",
+    },
+    other_variants = {"base": {}},
+    sources = {
+        "SDC_FILE": [":constraint.sdc"],
+    },
+    sweep = {
+        density: {
+            "arguments": {
+                "PLACE_DENSITY": density,
+            },
+            "previous_stage": {
+                "floorplan": "ethmac_lvt_synth",
+            },
+        }
+        for density in PLACEMENT_DENSITIES
+    },
+    top = "ethmac",
+    verilog_files = ["//:ethmac_lvt_src"],
+)
+
+[filegroup(
+    name = "ethmac_lvt_{density}_congestion".format(density = density),
+    srcs = [":ethmac_lvt_{density}_grt".format(density = density)],
+    output_group = "congestion.rpt",
+) for density in PLACEMENT_DENSITIES]
+
+filegroup(
+    name = "congestion",
+    srcs = [":ethmac_lvt_{density}_congestion".format(density = density) for density in PLACEMENT_DENSITIES],
+)
+
+py_binary(
+    name = "plot_congestion",
+    srcs = ["plot_congestion.py"],
+    main = "plot_congestion.py",
+    deps = [requirement("matplotlib")],
+)
+
+genrule(
+    name = "plot_pdf",
+    srcs = [":congestion"],
+    outs = ["congestion.pdf"],
+    cmd = "$(execpath :plot_congestion) $@ $(locations :congestion)",
+    tools = [":plot_congestion"],
+)
+
+sh_binary(
+    name = "plot",
+    srcs = [":open_plots.sh"],
+    args = ["$(location :plot_pdf)"],
+    data = [":plot_pdf"],
+)
