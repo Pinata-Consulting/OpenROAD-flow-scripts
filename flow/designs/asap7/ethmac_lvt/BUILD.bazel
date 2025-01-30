@@ -1,5 +1,5 @@
 load("@bazel-orfs//:sweep.bzl", "orfs_sweep")
-load("@orfs-pip//:requirements.bzl", "requirement")
+load("//util:plot_congestion.bzl", "plot_congestion")
 
 # Format densities, rounding to 2 decimal places.
 SWEEPS = {
@@ -51,35 +51,9 @@ orfs_sweep(
     verilog_files = ["//:ethmac_lvt_src"],
 )
 
-[filegroup(
-    name = "ethmac_lvt_{value}_congestion".format(value = value),
-    srcs = [":ethmac_lvt_{value}_grt".format(value = value)],
-    output_group = "congestion.rpt",
-) for value in SWEEPS[SWEEP]]
-
-filegroup(
-    name = "congestion",
-    srcs = [":ethmac_lvt_{value}_congestion".format(value = value) for value in SWEEPS[SWEEP]],
-)
-
-py_binary(
-    name = "plot_congestion",
-    srcs = ["plot_congestion.py"],
-    main = "plot_congestion.py",
-    deps = [requirement("matplotlib")],
-)
-
-genrule(
-    name = "plot_pdf",
-    srcs = [":congestion"],
-    outs = ["congestion.pdf"],
-    cmd = "$(execpath :plot_congestion) {value} $@ $(locations :congestion)".format(value = SWEEP),
-    tools = [":plot_congestion"],
-)
-
-sh_binary(
+plot_congestion(
     name = "plot",
-    srcs = [":open_plots.sh"],
-    args = ["$(location :plot_pdf)"],
-    data = [":plot_pdf"],
+    srcs = [":ethmac_lvt_{value}_grt".format(value = value) for value in SWEEPS[SWEEP]],
+    argument = SWEEP,
+    values = SWEEPS[SWEEP],
 )
