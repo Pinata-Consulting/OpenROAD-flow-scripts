@@ -11,7 +11,7 @@ def plot_congestion(name, srcs, argument, values):
         name = "{}_pdf".format(name),
         srcs = ["{name}_congestion".format(name = name)],
         outs = ["{}.pdf".format(name)],
-        cmd = "$(execpath //util:plot_congestion) {argument} $@ $(locations :{name}_congestion) {values}".format(values = " ".join(values), argument = argument, name=name),
+        cmd = "$(execpath //util:plot_congestion) {argument} $@ $(locations :{name}_congestion) {values}".format(values = " ".join(values), argument = argument, name = name),
         tools = ["//util:plot_congestion"],
     )
 
