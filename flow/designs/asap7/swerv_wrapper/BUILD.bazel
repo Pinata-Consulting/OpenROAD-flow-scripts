@@ -2,8 +2,11 @@ load("@bazel-orfs//:sweep.bzl", "orfs_sweep")
 load("//util:plot_congestion.bzl", "plot_congestion")
 
 # Format densities, rounding to 2 decimal places.
+DENSITIES = [str(0.20 + x * 0.01 + 0.005)[:4] for x in range(30)]
+DENSITIES.remove("0.46")
+
 SWEEPS = {
-    "PLACE_DENSITY_LB_ADDON": [str(0.20 + x * 0.01 + 0.005)[:4] for x in range(10)],
+    "PLACE_DENSITY_LB_ADDON":DENSITIES,
     "CORE_UTILIZATION": [str(40 + x * 5) for x in range(4)],
 }
 
