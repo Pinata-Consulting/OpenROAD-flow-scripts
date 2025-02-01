@@ -2,8 +2,7 @@ load("@bazel-orfs//:sweep.bzl", "orfs_sweep")
 load("//util:plot_congestion.bzl", "plot_congestion")
 
 # Format densities, rounding to 2 decimal places.
-DENSITIES = [str(0.20 + x * 0.01 + 0.005)[:4] for x in range(30)]
-DENSITIES.remove("0.46")
+DENSITIES = [str(0.49 + x * 0.01 + 0.005)[:4] for x in range(20)]
 
 SWEEPS = {
     "PLACE_DENSITY_LB_ADDON":DENSITIES,
@@ -24,7 +23,7 @@ orfs_sweep(
         "DIE_AREA": "0 0 550 600",
         "CORE_AREA": "5 5 545 595",
         "PLACE_PINS_ARGS": "-exclude left:* -exclude right:*",
-        "PLACE_DENSITY_LB_ADDON": "0.20",
+        "PLACE_DENSITY_LB_ADDON": "0.49",
         "TNS_END_PERCENT": "100",
         "PWR_NETS_VOLTAGEsS": "",
         "GND_NETS_VOLTAGES": "",
@@ -41,7 +40,7 @@ orfs_sweep(
                 SWEEP: value,
             },
             "previous_stage": {
-                "floorplan": "swerv_wrapper_synth",
+                "place": "swerv_wrapper_floorplan",
             },
         }
         for value in SWEEPS[SWEEP]
