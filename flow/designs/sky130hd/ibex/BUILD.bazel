@@ -18,7 +18,6 @@ orfs_sweep(
         "TNS_END_PERCENT": "100",
         "REMOVE_ABC_BUFFERS": "1",
     },
-    other_variants = {"base": {}},
     sources = {
         "SDC_FILE": [":constraint.sdc"],
         "FASTROUTE_TCL": ["fastroute.tcl"],
@@ -33,7 +32,13 @@ orfs_sweep(
             },
         }
         for value in SWEEPS[SWEEP]
-    },
+    } | {
+        "base": {
+            "arguments": {
+            "YOSYS_FLAGS": "-v 3 --hash-seed=1234",
+            },
+        }
+        },
     top = "ibex_core",
     verilog_files = ["//designs/src/ibex:verilog"],
     pdk = "@docker_orfs//:sky130hd",

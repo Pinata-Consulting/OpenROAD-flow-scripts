@@ -5,9 +5,11 @@ load("//util:plot_congestion.bzl", "plot_congestion")
 # Format densities, rounding to 2 decimal places.
 SWEEPS = {
     "PLACE_DENSITY": [str(0.82 + x * 0.01 + 0.005)[:4] for x in range(10)],
+    "ROUTING_LAYER_ADJUSTMENT": [str(0.5 + x * 0.05)[:4] for x in range(5)],
 }
 
 SWEEP = "PLACE_DENSITY"
+MOCK_ARRAY_SWEEP = "ROUTING_LAYER_ADJUSTMENT"
 
 filegroup(
     name = "mock-array-constraints",
@@ -28,7 +30,7 @@ filegroup(
     visibility = [":__subpackages__"],
 )
 
-orfs_flow(
+orfs_sweep(
     name = "MockArray",
     arguments = {
         "PLACE_PINS_ARGS": "-annealing",
@@ -51,7 +53,27 @@ orfs_flow(
         "SDC_FILE": [":mock-array-constraints"],
         "IO_CONSTRAINTS": [":mock-array-io"],
     },
+    other_variants = {"base": {}},
+    sweep = {
+        value: {
+            "arguments": {
+                MOCK_ARRAY_SWEEP: value,
+            },
+            "previous_stage": {
+                "grt": "MockArray_cts",
+            },
+        }
+        for value in SWEEPS[MOCK_ARRAY_SWEEP]
+    },
+        
     verilog_files = ["//designs/src/mock-array:verilog"],
+)
+
+plot_congestion(
+    name = "MockArray_plot",
+    srcs = [":MockArray_{value}_grt".format(value = value) for value in SWEEPS[MOCK_ARRAY_SWEEP]],
+    argument = MOCK_ARRAY_SWEEP,
+    values = SWEEPS[MOCK_ARRAY_SWEEP],
 )
 
 filegroup(

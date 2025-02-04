@@ -53,9 +53,9 @@ orfs.default(
     # image = "gcr.io/ascenium/orfs-megaboom/flow-ubuntu22.04-builder:c46d41",
     #
     # Official image https://hub.docker.com/r/openroad/orfs/tags
-    image = "docker.io/openroad/orfs:v3.0-2130-g6b38aeeb",
+    image = "docker.io/openroad/orfs:v3.0-2288-ga70d32c0",
     # image = "gcr.io/ascenium/orfs-megaboom/flow-ubuntu22.04-builder:3d2c3d-2",
-    sha256 = "f5b573d244862bc59f858e2a3586c48aef70989e98f6541099bd15a720e28e7e",
+    sha256 = "cdc75ec77d68790faed310b690abbe5eceeb9bea9f7a20e9ddeaa6ed0caa75cc",
 )
 use_repo(orfs, "com_github_nixos_patchelf_download")
 use_repo(orfs, "docker_orfs")
