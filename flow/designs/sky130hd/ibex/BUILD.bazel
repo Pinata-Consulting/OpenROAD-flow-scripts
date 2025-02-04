@@ -1,0 +1,46 @@
+load("@bazel-orfs//:sweep.bzl", "orfs_sweep")
+load("//util:plot_congestion.bzl", "plot_congestion")
+
+# Format densities, rounding to 2 decimal places.
+SWEEPS = {
+    "PLACE_DENSITY": [str(0.40 + x * 0.01 + 0.005)[:4] for x in range(20)],
+    "CORE_UTILIZATION": [str(40 + x * 5) for x in range(4)],
+}
+
+SWEEP = "PLACE_DENSITY"
+
+orfs_sweep(
+    name = "ibex",
+    arguments = {
+        "ADDER_MAP_FILE": "",
+        "CORE_UTILIZATION": "45",
+        "PLACE_DENSITY_LB_ADDON": "0.2",
+        "TNS_END_PERCENT": "100",
+        "REMOVE_ABC_BUFFERS": "1",
+    },
+    other_variants = {"base": {}},
+    sources = {
+        "SDC_FILE": [":constraint.sdc"],
+        "FASTROUTE_TCL": ["fastroute.tcl"],
+    },
+    sweep = {
+        value: {
+            "arguments": {
+                SWEEP: value,
+            },
+            "previous_stage": {
+                "floorplan": "ibex_synth",
+            },
+        }
+        for value in SWEEPS[SWEEP]
+    },
+    top = "ibex_core",
+    verilog_files = ["//designs/src/ibex:verilog"],
+)
+
+plot_congestion(
+    name = "plot",
+    srcs = [":ibex_{value}_grt".format(value = value) for value in SWEEPS[SWEEP]],
+    argument = SWEEP,
+    values = SWEEPS[SWEEP],
+)
