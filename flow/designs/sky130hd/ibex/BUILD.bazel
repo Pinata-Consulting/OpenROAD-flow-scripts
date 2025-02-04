@@ -36,6 +36,7 @@ orfs_sweep(
     },
     top = "ibex_core",
     verilog_files = ["//designs/src/ibex:verilog"],
+    pdk = "@docker_orfs//:sky130hd",
 )
 
 plot_congestion(
