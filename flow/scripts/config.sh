@@ -49,3 +49,46 @@ while IFS= read -r line; do
   # Replace "__SPACE__" with an actual space in the line
   eval "${line//__SPACE__/ }"
 done < <("${FLOW_HOME}/scripts/defaults.py")
+
+
+# Determine the number of cores (NUM_CORES)
+if [[ -z "${NUM_CORES:-}" ]]; then
+  # Linux (utility program)
+  NUM_CORES=$(nproc 2>/dev/null || true)
+
+  if [[ -z "$NUM_CORES" ]]; then
+    # Linux (generic)
+    NUM_CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || true)
+  fi
+
+  if [[ -z "$NUM_CORES" ]]; then
+    # BSD (at least FreeBSD and macOS)
+    NUM_CORES=$(sysctl -n hw.ncpu 2>/dev/null || true)
+  fi
+
+  if [[ -z "$NUM_CORES" ]]; then
+    # Fallback
+    NUM_CORES=1
+  fi
+fi
+export NUM_CORES
+
+# Determine the executable location for each tool used by this flow.
+# Priority is given to:
+# 1. User explicitly setting the variable in the environment or command line (e.g., OPENROAD_EXE).
+# 2. Default ORFS compiled tools: openroad, yosys.
+
+# Set default paths for executables if not already set
+export OPENROAD_EXE="${OPENROAD_EXE:-$(realpath "${FLOW_HOME}/../tools/install/OpenROAD/bin/openroad")}"
+export OPENSTA_EXE="${OPENSTA_EXE:-$(realpath "${FLOW_HOME}/../tools/install/OpenROAD/bin/sta")}"
+export YOSYS_EXE="${YOSYS_EXE:-$(realpath "${FLOW_HOME}/../tools/install/yosys/bin/yosys")}"
+
+export OR_ARGS="${OR_ARGS:-}"
+
+# Define OpenROAD command-line arguments
+export OPENROAD_ARGS="-no_init -threads ${NUM_CORES} ${OR_ARGS}"
+
+# Define OpenROAD commands
+export OPENROAD_CMD="${OPENROAD_EXE} -exit ${OPENROAD_ARGS}"
+export OPENROAD_NO_EXIT_CMD="${OPENROAD_EXE} ${OPENROAD_ARGS}"
+export OPENROAD_GUI_CMD="${OPENROAD_EXE} -gui ${OR_ARGS}"

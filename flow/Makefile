@@ -159,42 +159,6 @@ ifneq ($(BLOCKS),)
   endif
 endif
 
-#-------------------------------------------------------------------------------
-ifeq (,$(strip $(NUM_CORES)))
-  # Linux (utility program)
-  NUM_CORES := $(shell nproc 2>/dev/null)
-
-  ifeq (,$(strip $(NUM_CORES)))
-    # Linux (generic)
-    NUM_CORES := $(shell grep -c ^processor /proc/cpuinfo 2>/dev/null)
-  endif
-  ifeq (,$(strip $(NUM_CORES)))
-    # BSD (at least FreeBSD and Mac OSX)
-    NUM_CORES := $(shell sysctl -n hw.ncpu 2>/dev/null)
-  endif
-  ifeq (,$(strip $(NUM_CORES)))
-    # Fallback
-    NUM_CORES := 1
-  endif
-endif
-export NUM_CORES
-
-export YOSYS_FLAGS += -v 3
-
-# The following determine the executable location for each tool used by this flow.
-# Priority is given to
-#       1 user explicit set with variable in Makefile or command line, for instance setting OPENROAD_EXE
-#       2 ORFS compiled tools: openroad, yosys
-export OPENROAD_EXE      ?= $(abspath $(FLOW_HOME)/../tools/install/OpenROAD/bin/openroad)
-export OPENSTA_EXE       ?= $(abspath $(FLOW_HOME)/../tools/install/OpenROAD/bin/sta)
-
-export OPENROAD_ARGS            = -no_init -threads $(NUM_CORES) $(OR_ARGS)
-export OPENROAD_CMD             = $(OPENROAD_EXE) -exit $(OPENROAD_ARGS)
-export OPENROAD_NO_EXIT_CMD     = $(OPENROAD_EXE) $(OPENROAD_ARGS)
-export OPENROAD_GUI_CMD         = $(OPENROAD_EXE) -gui $(OR_ARGS)
-
-export YOSYS_EXE               ?= $(abspath $(FLOW_HOME)/../tools/install/yosys/bin/yosys)
-
 # Use locally installed and built klayout if it exists, otherwise use klayout in path
 KLAYOUT_DIR = $(abspath $(FLOW_HOME)/../tools/install/klayout/)
 KLAYOUT_BIN_FROM_DIR = $(KLAYOUT_DIR)/klayout
