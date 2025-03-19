@@ -138,132 +138,39 @@ MAKEFLAGS += --no-builtin-rules
 SHELL          := /usr/bin/env bash
 .SHELLFLAGS    := -o pipefail -c
 
-#-------------------------------------------------------------------------------
-# Setup variables to point to root / head of the OpenROAD directory
-# - the following settings allowed user to point OpenROAD binaries to different
-#   location
-# - default is current install / clone directory
 ifeq ($(origin FLOW_HOME), undefined)
 FLOW_HOME := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 endif
 export FLOW_HOME
 
-#-------------------------------------------------------------------------------
-# Setup variables to point to other location for the following sub directory
-# - designs - default is under current directory
-# - platforms - default is under current directory
-# - work home - default is current directory
-# - utils, scripts, test - default is under current directory
-export DESIGN_HOME   ?= $(FLOW_HOME)/designs
-export PLATFORM_HOME ?= $(FLOW_HOME)/platforms
-export WORK_HOME     ?= .
-
-export UTILS_DIR     ?= $(FLOW_HOME)/util
-export SCRIPTS_DIR   ?= $(FLOW_HOME)/scripts
-export TEST_DIR      ?= $(FLOW_HOME)/test
-
-PUBLIC=nangate45 sky130hd sky130hs asap7 ihp-sg13g2 gf180
-
-ifneq ($(wildcard $(PLATFORM_HOME)/$(PLATFORM)),)
-  export PLATFORM_DIR = $(PLATFORM_HOME)/$(PLATFORM)
-else ifneq ($(findstring $(PLATFORM),$(PUBLIC)),)
-  export PLATFORM_DIR = ./platforms/$(PLATFORM)
-else ifneq ($(wildcard ../../$(PLATFORM)),)
-  export PLATFORM_DIR = ../../$(PLATFORM)
-else
-  $(error [ERROR][FLOW] Platform '$(PLATFORM)' not found.)
-endif
-
-include $(PLATFORM_DIR)/config.mk
-
+# The plan is to migrate all variables to .sh so that
+# ORFS is no longer dependent on make.
+#
+# Explicitly enumerate the environment variables we need $SCRIPTS/config.sh
+# to see since make doesn't pass its environment to subshells.
+#
 # __SPACE__ is a workaround for whitespace hell in "foreach"; there
 # is no way to escape space in defaults.py and get "foreach" to work.
-$(foreach line,$(shell $(SCRIPTS_DIR)/defaults.py),$(eval export $(subst __SPACE__, ,$(line))))
+$(foreach line,$(shell \
+ DESIGN_NAME=$(DESIGN_NAME) \
+ FLOW_HOME=$(FLOW_HOME) \
+ DESIGN_CONFIG=$(DESIGN_CONFIG) \
+ PLATFORM=$(PLATFORM) \
+ FLOW_VARIANT=$(FLOW_VARIANT) \
+ DESIGN_NICKNAME=$(DESIGN_NICKNAME) \
+ $(FLOW_HOME)/scripts/env.sh $(FLOW_HOME)/scripts/config.sh),$(eval $(subst __SPACE__, ,$(line))))
 
-# Not normally adjusted by user
-export SYNTH_OPERATIONS_ARGS ?= -extra-map $(FLOW_HOME)/platforms/common/lcu_kogge_stone.v
-export SYNTH_FULL_ARGS ?= $(SYNTH_ARGS) $(SYNTH_OPERATIONS_ARGS)
+# check some critical variables in a loop
+$(foreach var,DESIGN_NAME DESIGN_NICKNAME PLATFORM,\
+  $(if $(strip $($(var))),,$(error $(var) is not set)))
 
-export DESIGN_CONFIG
-export DESIGN_DIR  = $(dir $(DESIGN_CONFIG))
-export LOG_DIR     = $(WORK_HOME)/logs/$(PLATFORM)/$(DESIGN_NICKNAME)/$(FLOW_VARIANT)
-export OBJECTS_DIR = $(WORK_HOME)/objects/$(PLATFORM)/$(DESIGN_NICKNAME)/$(FLOW_VARIANT)
-export REPORTS_DIR = $(WORK_HOME)/reports/$(PLATFORM)/$(DESIGN_NICKNAME)/$(FLOW_VARIANT)
-export RESULTS_DIR = $(WORK_HOME)/results/$(PLATFORM)/$(DESIGN_NICKNAME)/$(FLOW_VARIANT)
-
-#-------------------------------------------------------------------------------
-ifeq (,$(strip $(NUM_CORES)))
-  # Linux (utility program)
-  NUM_CORES := $(shell nproc 2>/dev/null)
-
-  ifeq (,$(strip $(NUM_CORES)))
-    # Linux (generic)
-    NUM_CORES := $(shell grep -c ^processor /proc/cpuinfo 2>/dev/null)
-  endif
-  ifeq (,$(strip $(NUM_CORES)))
-    # BSD (at least FreeBSD and Mac OSX)
-    NUM_CORES := $(shell sysctl -n hw.ncpu 2>/dev/null)
-  endif
-  ifeq (,$(strip $(NUM_CORES)))
-    # Fallback
-    NUM_CORES := 1
-  endif
-endif
-export NUM_CORES
-
-YOSYS_FLAGS += -v 3
-
-#-------------------------------------------------------------------------------
-# setup all commands used within this flow
-export TIME_BIN   ?= env time
-TIME_CMD = $(TIME_BIN) -f 'Elapsed time: %E[h:]min:sec. CPU time: user %U sys %S (%P). Peak memory: %MKB.'
-TIME_TEST = $(shell $(TIME_CMD) echo foo 2>/dev/null)
-ifeq (,$(strip $(TIME_TEST)))
-  TIME_CMD = $(TIME_BIN)
+# The plan is to move all config.mk variables into $(PLATFORM_DIR)/config.sh and
+# delete this include below
+ifneq ($(wildcard $(PLATFORM_DIR)/config.mk),)
+  include $(PLATFORM_DIR)/config.mk
 endif
 
-# The following determine the executable location for each tool used by this flow.
-# Priority is given to
-#       1 user explicit set with variable in Makefile or command line, for instance setting OPENROAD_EXE
-#       2 ORFS compiled tools: openroad, yosys
-ifneq (${IN_NIX_SHELL},)
-  export OPENROAD_EXE := $(shell command -v openroad)
-else
-  export OPENROAD_EXE ?= $(abspath $(FLOW_HOME)/../tools/install/OpenROAD/bin/openroad)
-endif
-ifneq (${IN_NIX_SHELL},)
-  export OPENSTA_EXE := $(shell command -v sta)
-else
-  export OPENSTA_EXE ?= $(abspath $(FLOW_HOME)/../tools/install/OpenROAD/bin/sta)
-endif
-
-OPENROAD_ARGS            = -no_init -threads $(NUM_CORES) $(OR_ARGS)
-OPENROAD_CMD             = $(OPENROAD_EXE) -exit $(OPENROAD_ARGS)
-OPENROAD_NO_EXIT_CMD     = $(OPENROAD_EXE) $(OPENROAD_ARGS)
-OPENROAD_GUI_CMD         = $(OPENROAD_EXE) -gui $(OR_ARGS)
-
-ifneq (${IN_NIX_SHELL},)
-  YOSYS_EXE := $(shell command -v yosys)
-else
-  YOSYS_EXE ?= $(abspath $(FLOW_HOME)/../tools/install/yosys/bin/yosys)
-endif
-
-# Use locally installed and built klayout if it exists, otherwise use klayout in path
-KLAYOUT_DIR = $(abspath $(FLOW_HOME)/../tools/install/klayout/)
-KLAYOUT_BIN_FROM_DIR = $(KLAYOUT_DIR)/klayout
-
-ifeq ($(wildcard $(KLAYOUT_BIN_FROM_DIR)), $(KLAYOUT_BIN_FROM_DIR))
-KLAYOUT_CMD ?= sh -c 'LD_LIBRARY_PATH=$(dir $(KLAYOUT_BIN_FROM_DIR)) $$0 "$$@"' $(KLAYOUT_BIN_FROM_DIR)
-else
-ifeq ($(KLAYOUT_CMD),)
-KLAYOUT_CMD := $(shell command -v klayout)
-endif
-endif
 KLAYOUT_FOUND            = $(if $(KLAYOUT_CMD),,$(error KLayout not found in PATH))
-
-ifneq ($(shell command -v stdbuf),)
-  STDBUF_CMD ?= stdbuf -o L
-endif
 
 #-------------------------------------------------------------------------------
 WRAPPED_LEFS = $(foreach lef,$(notdir $(WRAP_LEFS)),$(OBJECTS_DIR)/lef/$(lef:.lef=_mod.lef))
@@ -435,10 +342,6 @@ memory:
 
 # Run Synthesis using yosys
 #-------------------------------------------------------------------------------
-
-export SYNTH_SCRIPT ?= $(SCRIPTS_DIR)/synth.tcl
-export SDC_FILE_CLOCK_PERIOD = $(RESULTS_DIR)/clock_period.txt
-
 $(SDC_FILE_CLOCK_PERIOD): $(SDC_FILE)
 	mkdir -p $(dir $@)
 	echo $(ABC_CLOCK_PERIOD_IN_PS) > $@
@@ -450,13 +353,11 @@ yosys-dependencies: $(YOSYS_DEPENDENCIES)
 
 .PHONY: do-yosys
 do-yosys: $(DONT_USE_SC_LIB)
-	mkdir -p $(RESULTS_DIR) $(LOG_DIR) $(REPORTS_DIR) $(OBJECTS_DIR)
-	($(TIME_CMD) $(YOSYS_EXE) $(YOSYS_FLAGS) -c $(SYNTH_SCRIPT)) 2>&1 | tee $(abspath $(LOG_DIR)/1_1_yosys.log)
+	$(SCRIPTS_DIR)/synth.sh $(SYNTH_SCRIPT) $(LOG_DIR)/1_1_yosys.log
 
 .PHONY: do-yosys-canonicalize
 do-yosys-canonicalize: yosys-dependencies $(DONT_USE_SC_LIB)
-	mkdir -p $(RESULTS_DIR) $(LOG_DIR) $(REPORTS_DIR) $(OBJECTS_DIR)
-	($(TIME_CMD) $(YOSYS_EXE) $(YOSYS_FLAGS) -c $(SCRIPTS_DIR)/synth_canonicalize.tcl) 2>&1 | tee $(abspath $(LOG_DIR)/1_1_yosys_canonicalize.log)
+	$(SCRIPTS_DIR)/synth.sh $(SCRIPTS_DIR)/synth_canonicalize.tcl $(LOG_DIR)/1_1_yosys_canonicalize.log
 
 $(RESULTS_DIR)/1_synth.rtlil: $(YOSYS_DEPENDENCIES)
 	$(UNSET_AND_MAKE) do-yosys-canonicalize
@@ -563,13 +464,7 @@ endif
 
 .PHONY: do-$(1)
 do-$(1): $(OBJECTS_DIR)/copyright.txt
-	@mkdir -p $(RESULTS_DIR) $(LOG_DIR) $(REPORTS_DIR) $(OBJECTS_DIR)
-	@echo Running $(3).tcl, stage $(1)
-	@(set -eo pipefail; \
-	trap 'mv $(LOG_DIR)/$(1).tmp.log $(LOG_DIR)/$(1).log' EXIT; \
-	$(OPENROAD_EXE) $(OPENROAD_ARGS) -exit $(SCRIPTS_DIR)/noop.tcl 2>&1 >$(LOG_DIR)/$(1).tmp.log; \
-	$(TIME_CMD) $(OPENROAD_CMD) -no_splash $(SCRIPTS_DIR)/$(3).tcl -metrics $(LOG_DIR)/$(1).json 2>&1 | \
-	tee -a $(abspath $(LOG_DIR)/$(1).tmp.log))
+	$(SCRIPTS_DIR)/flow.sh $(1) $(3)
 endef
 
 # generate make rules to copy a file, if a dependency change and
