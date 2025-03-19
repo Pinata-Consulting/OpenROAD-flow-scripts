@@ -159,22 +159,7 @@ ifneq ($(BLOCKS),)
   endif
 endif
 
-# Use locally installed and built klayout if it exists, otherwise use klayout in path
-KLAYOUT_DIR = $(abspath $(FLOW_HOME)/../tools/install/klayout/)
-KLAYOUT_BIN_FROM_DIR = $(KLAYOUT_DIR)/klayout
-
-ifeq ($(wildcard $(KLAYOUT_BIN_FROM_DIR)), $(KLAYOUT_BIN_FROM_DIR))
-KLAYOUT_CMD ?= sh -c 'LD_LIBRARY_PATH=$(dir $(KLAYOUT_BIN_FROM_DIR)) $$0 "$$@"' $(KLAYOUT_BIN_FROM_DIR)
-else
-ifeq ($(KLAYOUT_CMD),)
-KLAYOUT_CMD := $(shell command -v klayout)
-endif
-endif
 KLAYOUT_FOUND            = $(if $(KLAYOUT_CMD),,$(error KLayout not found in PATH))
-
-ifneq ($(shell command -v stdbuf),)
-  STDBUF_CMD ?= stdbuf -o L
-endif
 
 #-------------------------------------------------------------------------------
 WRAPPED_LEFS = $(foreach lef,$(notdir $(WRAP_LEFS)),$(OBJECTS_DIR)/lef/$(lef:.lef=_mod.lef))

@@ -92,3 +92,21 @@ export OPENROAD_ARGS="-no_init -threads ${NUM_CORES} ${OR_ARGS}"
 export OPENROAD_CMD="${OPENROAD_EXE} -exit ${OPENROAD_ARGS}"
 export OPENROAD_NO_EXIT_CMD="${OPENROAD_EXE} ${OPENROAD_ARGS}"
 export OPENROAD_GUI_CMD="${OPENROAD_EXE} -gui ${OR_ARGS}"
+
+# Use locally installed and built klayout if it exists, otherwise use klayout in path
+KLAYOUT_DIR="$(realpath "${FLOW_HOME}/../tools/install/klayout/")"
+KLAYOUT_BIN_FROM_DIR="${KLAYOUT_DIR}/klayout"
+
+if [[ -x "${KLAYOUT_BIN_FROM_DIR}" ]]; then
+  export KLAYOUT_CMD="sh -c 'LD_LIBRARY_PATH=$(dirname "${KLAYOUT_BIN_FROM_DIR}") \$0 \"\$@\"' ${KLAYOUT_BIN_FROM_DIR}"
+else
+  if [[ -z "${KLAYOUT_CMD:-}" ]]; then
+    KLAYOUT_CMD="$(command -v klayout || true)"
+  fi
+fi
+export KLAYOUT_CMD
+
+# Check if `stdbuf` is available and set STDBUF_CMD
+if command -v stdbuf &>/dev/null; then
+  export STDBUF_CMD="stdbuf -o L"
+fi
