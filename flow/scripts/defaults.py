@@ -10,7 +10,7 @@ if os.path.exists(config_py):
     sys.path.append(os.path.dirname(config_py))
     import config
 
-    platform_defaults = config.get_defaults()
+    platform_defaults = config.get_defaults(os.environ)
 else:
     platform_defaults = {}
 

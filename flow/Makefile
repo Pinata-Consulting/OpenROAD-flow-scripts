@@ -201,6 +201,9 @@ $(foreach line,$(shell \
   YOSYS_EXE=$(YOSYS_EXE) \
   KLAYOUT_CMD=$(KLAYOUT_CMD) \
   SCRIPTS_DIR=$(SCRIPTS_DIR) \
+  ADDITIONAL_LIBS=$(ADDITIONAL_LIBS) \
+  ADDITIONAL_LIBS=$(ADDITIONAL_GDS) \
+  ADDITIONAL_LIBS=$(ADDITIONAL_LEFS) \
   $(SCRIPTS_DIR)/defaults.py make),$(eval export $(subst __SPACE__, ,$(line))))
 
 # Not normally adjusted by user
