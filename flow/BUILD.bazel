@@ -1,0 +1,60 @@
+load("@bazel-orfs//:openroad.bzl", "orfs_pdk")
+
+MAKEFILE_SHARED = [
+    "scripts/*.py",
+    "scripts/*.sh",
+    "scripts/*.yaml",
+    "scripts/*.mk",
+]
+
+filegroup(
+    name = "makefile_yosys",
+    srcs = ["Makefile"],
+    data = glob(MAKEFILE_SHARED + [
+        "scripts/*.script",
+        "scripts/util.tcl",
+        "scripts/synth*.tcl",
+         "platforms/common/**/*.v",
+    ]) +
+    ["//util:makefile_yosys"],
+    visibility = ["//visibility:public"],
+)
+
+
+# The files used in the flow steps(floorplan, place, route, etc.)
+filegroup(
+    name = "makefile",
+    srcs = ["Makefile"],
+    data = glob(MAKEFILE_SHARED + [
+        "scripts/*.tcl",
+         "platforms/common/**/*.v",
+    ]) + [
+        "//util:makefile",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+[orfs_pdk(
+    name = pdk,
+    config = ":platforms/{pdk}/config.mk".format(pdk = pdk),
+    srcs = glob([
+                    "platforms/{pdk}/**/*.{ext}".format(pdk = pdk, ext = ext)
+                    for ext in [
+                        "gds",
+                        "lib.gz",
+                        "lef",
+                        "lib",
+                        "lyt",
+                        "mk",
+                        "rules",
+                        "sdc",
+                        "tcl",
+                        "v",
+                        "tlef",
+                    ]
+                ]),
+    visibility = ["//visibility:public"],
+) for pdk in [
+    "asap7",
+    "sky130hd",
+]]
