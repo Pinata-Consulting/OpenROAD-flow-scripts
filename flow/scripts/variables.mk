@@ -38,15 +38,14 @@ ifeq ($(origin DESIGN_NAME), undefined)
 endif
 
 ifeq ($(PLATFORM_DIR),)
-  ifneq ($(wildcard $(PLATFORM_HOME)/$(PLATFORM)),)
-    export PLATFORM_DIR = $(PLATFORM_HOME)/$(PLATFORM)
-  else ifneq ($(findstring $(PLATFORM),$(PUBLIC)),)
-    export PLATFORM_DIR = ./platforms/$(PLATFORM)
-  else ifneq ($(wildcard ../../$(PLATFORM)),)
-    export PLATFORM_DIR = ../../$(PLATFORM)
-  else
-    $(error [ERROR][FLOW] Platform '$(PLATFORM)' not found.)
-  endif
+else ifneq ($(wildcard $(PLATFORM_HOME)/$(PLATFORM)),)
+  export PLATFORM_DIR = $(PLATFORM_HOME)/$(PLATFORM)
+else ifneq ($(findstring $(PLATFORM),$(PUBLIC)),)
+  export PLATFORM_DIR = ./platforms/$(PLATFORM)
+else ifneq ($(wildcard ../../$(PLATFORM)),)
+  export PLATFORM_DIR = ../../$(PLATFORM)
+else
+  $(error [ERROR][FLOW] Platform '$(PLATFORM)' not found.)
 endif
 
 include $(PLATFORM_DIR)/config.mk
