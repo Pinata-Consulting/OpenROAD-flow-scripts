@@ -226,7 +226,7 @@ if args.plot_res:
     plt.hist(diff_x, num_bins, facecolor="blue", alpha=0.5)
     plt.ylabel("# Nets")
     plt.xlabel(
-        "Resacitance ({})\n\nMean: {:.3f}{}\nStd. dev: {:.3f}fF".format(
+        "Resistance ({})\n\nMean: {:.3f}{}\nStd. dev: {:.3f}fF".format(
             res_unit, np.mean(diff_x), res_unit, np.std(diff_x)
         )
     )

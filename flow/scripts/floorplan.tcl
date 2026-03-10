@@ -130,7 +130,8 @@ if { !$::env(SKIP_REPAIR_TIE_FANOUT) } {
 }
 
 if { [env_var_exists_and_non_empty SWAP_ARITH_OPERATORS] } {
-  log_cmd estimate_parasitics -placement
+  # Enable sanity checker until replace_arith_modules becomes stable
+  set_debug_level ODB replace_design_check_sanity 1
   replace_arith_modules
 }
 
@@ -139,7 +140,7 @@ if { $::env(REMOVE_ABC_BUFFERS) } {
   remove_buffers
 } else {
   # Skip clone & split
-  repair_timing_helper -setup -skip_last_gasp -sequence "unbuffer,sizeup,swap,buffer,vt_swap"
+  repair_timing_helper -setup -skip_last_gasp -sequence "unbuffer,sizeup,swap,vt_swap"
 }
 
 puts "Default units for flow"

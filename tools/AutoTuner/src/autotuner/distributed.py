@@ -105,6 +105,8 @@ METRIC = "metric"
 ORFS_FLOW_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../../flow")
 )
+# Path to the WORK_HOME directory
+WORK_HOME = None
 # Global variable for args
 args = None
 
@@ -145,7 +147,12 @@ class AutoTunerBase(tune.Trainable):
 
         # if not a valid config, then don't run and pass back an error
         if not self.is_valid_config:
-            return {METRIC: ERROR_METRIC, "effective_clk_period": "-", "num_drc": "-"}
+            return {
+                METRIC: ERROR_METRIC,
+                "effective_clk_period": ERROR_METRIC,
+                "num_drc": ERROR_METRIC,
+                "die_area": ERROR_METRIC,
+            }
         self._variant = f"{self.variant}-{self.step_}"
         metrics_file = openroad(
             args=args,
@@ -240,7 +247,7 @@ class PPAImprov(AutoTunerBase):
         error = "ERR" in metrics.values() or "ERR" in reference.values()
         not_found = "N/A" in metrics.values() or "N/A" in reference.values()
         if error or not_found:
-            return (ERROR_METRIC, "-", "-", "-")
+            return (ERROR_METRIC, ERROR_METRIC, ERROR_METRIC, ERROR_METRIC)
         ppa = self.get_ppa(metrics)
         gamma = ppa / 10
         score = ppa * (self.step_ / 100) ** (-1) + (gamma * metrics["num_drc"])
@@ -408,6 +415,13 @@ def parse_arguments():
         metavar="<int>",
         default=10001,
         help="The port of Ray server to connect.",
+    )
+    parser.add_argument(
+        "--work-dir",
+        type=str,
+        metavar="<path>",
+        default=None,
+        help="Work directory for outputs (passed to ORFS as WORK_HOME).",
     )
 
     parser.add_argument(
@@ -612,8 +626,13 @@ def sweep():
 
 
 def main():
-    global args, SDC_ORIGINAL, FR_ORIGINAL, LOCAL_DIR, INSTALL_PATH, ORFS_FLOW_DIR, config_dict, reference, best_params
+    global args, SDC_ORIGINAL, FR_ORIGINAL, LOCAL_DIR, INSTALL_PATH, ORFS_FLOW_DIR, WORK_HOME, config_dict, reference, best_params
     args = parse_arguments()
+
+    # Set WORK_HOME from --work-dir argument
+    WORK_HOME = args.work_dir
+    if WORK_HOME:
+        print(f"[INFO TUN-0040] Work directory (WORK_HOME): {WORK_HOME}")
 
     # Read config and original files before handling where to run in case we
     # need to upload the files.

@@ -79,7 +79,7 @@ def calculate_score(metrics, step=1):
     not_found = "N/A" in metrics.values()
 
     if error or not_found:
-        return (ERROR_METRIC, "-", "-", "-")
+        return (ERROR_METRIC, ERROR_METRIC, ERROR_METRIC, ERROR_METRIC)
 
     effective_clk_period = metrics["clk_period"] - metrics["worst_slack"]
     num_drc = metrics["num_drc"]
@@ -361,6 +361,9 @@ def openroad(
     make_command += f"make -C {base_dir}/flow DESIGN_CONFIG=designs/"
     make_command += f"{args.platform}/{args.design}/config.mk"
     make_command += f" PLATFORM={args.platform}"
+    work_home = getattr(args, "work_dir", None)
+    if work_home is not None:
+        make_command += f" WORK_HOME={work_home}"
     make_command += f" FLOW_VARIANT={flow_variant} {parameters}"
     make_command += " EQUIVALENCE_CHECK=0"
     make_command += f" NUM_CORES={args.openroad_threads} SHELL=bash"

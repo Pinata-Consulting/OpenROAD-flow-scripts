@@ -105,3 +105,4 @@ export RCX_RULES = $(PLATFORM_DIR)/rcx_patterns.rules
 export PWR_NETS_VOLTAGES  ?= VDD 1.8
 export GND_NETS_VOLTAGES  ?= VSS 0.0
 export IR_DROP_LAYER ?= met1
+export REMOVE_CELLS_FOR_LEC = sky130_fd_sc_hs__tapvpwrvgnd*

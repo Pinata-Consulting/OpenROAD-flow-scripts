@@ -545,6 +545,11 @@ CELL_PAD_IN_SITES_GLOBAL_PLACEMENT:
   default: 0
   type: int
   tunable: 1
+DETAIL_PLACEMENT_ARGS:
+  description: >
+    Specify arguments to the detailed_placement call during placement.
+  stages:
+    - place
 CELL_PAD_IN_SITES_DETAIL_PLACEMENT:
   description: >
     Cell padding on both sides in site widths to ease routability in detail
@@ -1137,7 +1142,7 @@ RTLMP_NOTCH_WT:
   description: >
     Weight for the notch, or the existence of dead space that cannot be used
     for placement and routing.
-  default: 10.0
+  default: 50.0
   stages:
     - floorplan
 RTLMP_RPT_DIR:
@@ -1171,15 +1176,6 @@ RTLMP_FENCE_UY:
     Defines the upper right Y coordinate for the global fence bounding box in
     microns.
   default: 0.0
-  stages:
-    - floorplan
-RTLMP_DATA_FLOW_DRIVEN:
-  description: >
-    Specifies whether the macro placer should use data-flow driven macro placement.
-    Data-flow driven works by adding a wire length component that takes into account
-    the data paths of the design. This optional can increase run time significantly
-    for large designs.
-  default: 1
   stages:
     - floorplan
 RTLMP_ARGS:
@@ -1312,3 +1308,23 @@ WRITE_ODB_AND_SDC_EACH_STAGE:
   stages:
     - All stages
   default: 1
+LEC_CHECK:
+  description: >
+    Perform a formal equivalence check between before and after netlists.
+
+    If this fails, report an issue to OpenROAD.
+  default: 0
+  stages:
+    - cts
+REMOVE_CELLS_FOR_LEC:
+  description: >
+    String patterns directly passed to write_verilog -remove_cells <> for
+    lec checks.
+  type: string
+ASAP7_USE_VT:
+  description: >
+    A space separated list of VT options to use with the ASAP7 standard cell library:
+    RVT, LVT, SLVT.
+  stages:
+    - All stages
+  default: RVT
