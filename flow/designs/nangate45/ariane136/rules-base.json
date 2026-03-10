@@ -40,7 +40,7 @@
         "compare": ">="
     },
     "cts__timing__hold__tns": {
-        "value": -5.13,
+        "value": -4.16,
         "compare": ">="
     },
     "globalroute__antenna_diodes_count": {
@@ -64,7 +64,7 @@
         "compare": ">="
     },
     "detailedroute__route__wirelength": {
-        "value": 8034950,
+        "value": 8033923,
         "compare": "<="
     },
     "detailedroute__route__drc_errors": {

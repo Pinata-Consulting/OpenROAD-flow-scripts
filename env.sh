@@ -13,6 +13,8 @@ function __setpaths() {
   # developer settings go in ./dev_env.sh
   export PATH=${DIR}/tools/install/OpenROAD/bin:$PATH
   export PATH=${DIR}/tools/install/yosys/bin:$PATH
+  export PATH=${DIR}/tools/install/kepler-formal/bin:$PATH
+  export PATH=${DIR}/dependencies/bin:$PATH
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
     export PATH="/Applications/KLayout/klayout.app/Contents/MacOS:$PATH"
