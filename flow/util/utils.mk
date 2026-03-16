@@ -91,6 +91,12 @@ write_net_rc: $(RESULTS_DIR)/6_net_rc.csv
 $(RESULTS_DIR)/6_net_rc.csv:
 	($(TIME_CMD) $(OPENROAD_CMD) $(UTILS_DIR)/write_net_rc_script.tcl) 2>&1 | tee $(LOG_DIR)/6_write_net_rc.log
 
+.PHONY: write_segment_rc
+write_segment_rc: $(RESULTS_DIR)/6_segment_rc.csv
+
+$(RESULTS_DIR)/6_segment_rc.csv:
+	($(TIME_CMD) $(OPENROAD_CMD) $(UTILS_DIR)/write_segment_rc_script.tcl) 2>&1 | tee $(LOG_DIR)/6_write_segment_rc.log
+
 .PHONY: correlate_rc
 correlate_rc: $(RESULTS_DIR)/6_net_rc.csv
 	$(PYTHON_EXE) $(UTILS_DIR)/correlateRC.py $(RESULTS_DIR)/6_net_rc.csv

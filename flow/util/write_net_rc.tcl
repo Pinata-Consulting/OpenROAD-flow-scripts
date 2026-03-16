@@ -33,7 +33,6 @@ proc report_var_caps { var_name count } {
 }
 
 proc write_rc_csv { filename } {
-  upvar 1 gpl gpl_net_name_to_rc
   upvar 1 grt grt_net_name_to_rc
   upvar 1 rcx rcx_net_name_to_rc
 
@@ -68,13 +67,11 @@ proc write_rc_csv { filename } {
       (!$use_drt_data || [$db_net getWire] ne "NULL")
     } {
       set net_name [get_full_name $net]
-      lassign $gpl_net_name_to_rc($net_name) gpl_net_res gpl_net_cap
       lassign $grt_net_name_to_rc($net_name) grt_net_res grt_net_cap
       lassign $rcx_net_name_to_rc($net_name) rcx_net_res rcx_net_cap
       set net_type [expr { [string equal $type "CLOCK"] ? "clock" : "signal" }]
       puts -nonewline $stream "[get_full_name $net],$net_type,"
       puts -nonewline $stream [concat \
-        [format "%.3e" $gpl_net_res] "," [format "%.3e" $gpl_net_cap] "," \
         [format "%.3e" $grt_net_res] "," [format "%.3e" $grt_net_cap] "," \
         [format "%.3e" $rcx_net_res] "," [format "%.3e" $rcx_net_cap]]
       set db_net [sta::sta_to_db_net $net]

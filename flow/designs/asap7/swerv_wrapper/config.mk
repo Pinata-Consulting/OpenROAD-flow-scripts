@@ -51,8 +51,7 @@ export SDC_FILE      = $(DESIGN_HOME)/$(PLATFORM)/swerv_wrapper/constraint.sdc
 export ADDITIONAL_LEFS = $(sort $(wildcard $(DESIGN_HOME)/$(PLATFORM)/swerv_wrapper/lef/*.lef))
 export ADDITIONAL_LIBS = $(sort $(wildcard $(DESIGN_HOME)/$(PLATFORM)/swerv_wrapper/lib/*.lib))
 
-export DIE_AREA    = 0 0 550 600
-export CORE_AREA   = 5 5 545 595 
+export CORE_UTILIZATION = 30
 
 export IO_CONSTRAINTS     = $(DESIGN_HOME)/$(PLATFORM)/swerv_wrapper/io.tcl
 export PLACE_DENSITY_LB_ADDON = 0.20
@@ -63,4 +62,3 @@ export SWAP_ARITH_OPERATORS = 1
 export OPENROAD_HIERARCHICAL = 1
 
 export LEC_CHECK = 0
-

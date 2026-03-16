@@ -192,7 +192,39 @@ configuration file.
 | <a name="PLATFORM"></a>PLATFORM| Specifies process design kit or technology node to be used.| |
 | <a name="PLATFORM_TCL"></a>PLATFORM_TCL| Specifies a Tcl script with commands to run before loading design.| |
 | <a name="POST_CTS_TCL"></a>POST_CTS_TCL| Specifies a Tcl script with commands to run after CTS is completed.| |
+| <a name="POST_DENSITY_FILL_TCL"></a>POST_DENSITY_FILL_TCL| Specifies a Tcl script with commands to run after density fill.| |
+| <a name="POST_DETAIL_PLACE_TCL"></a>POST_DETAIL_PLACE_TCL| Specifies a Tcl script with commands to run after detailed placement.| |
+| <a name="POST_DETAIL_ROUTE_TCL"></a>POST_DETAIL_ROUTE_TCL| Specifies a Tcl script with commands to run after detailed route.| |
+| <a name="POST_FILLCELL_TCL"></a>POST_FILLCELL_TCL| Specifies a Tcl script with commands to run after fillcell insertion.| |
+| <a name="POST_FINAL_REPORT_TCL"></a>POST_FINAL_REPORT_TCL| Specifies a Tcl script with commands to run after final report generation.| |
+| <a name="POST_FLOORPLAN_TCL"></a>POST_FLOORPLAN_TCL| Specifies a Tcl script with commands to run after floorplan is completed.| |
+| <a name="POST_GLOBAL_PLACE_SKIP_IO_TCL"></a>POST_GLOBAL_PLACE_SKIP_IO_TCL| Specifies a Tcl script with commands to run after global placement (skip IO).| |
+| <a name="POST_GLOBAL_PLACE_TCL"></a>POST_GLOBAL_PLACE_TCL| Specifies a Tcl script with commands to run after global placement.| |
+| <a name="POST_GLOBAL_ROUTE_TCL"></a>POST_GLOBAL_ROUTE_TCL| Specifies a Tcl script with commands to run after global route.| |
+| <a name="POST_IO_PLACEMENT_TCL"></a>POST_IO_PLACEMENT_TCL| Specifies a Tcl script with commands to run after IO placement.| |
+| <a name="POST_MACRO_PLACE_TCL"></a>POST_MACRO_PLACE_TCL| Specifies a Tcl script with commands to run after macro placement.| |
+| <a name="POST_PDN_TCL"></a>POST_PDN_TCL| Specifies a Tcl script with commands to run after PDN generation.| |
+| <a name="POST_REPAIR_TIMING_POST_PLACE_TCL"></a>POST_REPAIR_TIMING_POST_PLACE_TCL| Specifies a Tcl script with commands to run after post-place timing repair.| |
+| <a name="POST_RESIZE_TCL"></a>POST_RESIZE_TCL| Specifies a Tcl script with commands to run after resize.| |
+| <a name="POST_SYNTH_TCL"></a>POST_SYNTH_TCL| Specifies a Tcl script with commands to run after synthesis ODB generation.| |
+| <a name="POST_TAPCELL_TCL"></a>POST_TAPCELL_TCL| Specifies a Tcl script with commands to run after tapcell.| |
+| <a name="PRE_CTS_TCL"></a>PRE_CTS_TCL| Specifies a Tcl script with commands to run before CTS.| |
+| <a name="PRE_DENSITY_FILL_TCL"></a>PRE_DENSITY_FILL_TCL| Specifies a Tcl script with commands to run before density fill.| |
+| <a name="PRE_DETAIL_PLACE_TCL"></a>PRE_DETAIL_PLACE_TCL| Specifies a Tcl script with commands to run before detailed placement.| |
+| <a name="PRE_DETAIL_ROUTE_TCL"></a>PRE_DETAIL_ROUTE_TCL| Specifies a Tcl script with commands to run before detailed route.| |
+| <a name="PRE_FILLCELL_TCL"></a>PRE_FILLCELL_TCL| Specifies a Tcl script with commands to run before fillcell insertion.| |
+| <a name="PRE_FINAL_REPORT_TCL"></a>PRE_FINAL_REPORT_TCL| Specifies a Tcl script with commands to run before final report generation.| |
+| <a name="PRE_FLOORPLAN_TCL"></a>PRE_FLOORPLAN_TCL| Specifies a Tcl script with commands to run before floorplan.| |
+| <a name="PRE_GLOBAL_PLACE_SKIP_IO_TCL"></a>PRE_GLOBAL_PLACE_SKIP_IO_TCL| Specifies a Tcl script with commands to run before global placement (skip IO).| |
+| <a name="PRE_GLOBAL_PLACE_TCL"></a>PRE_GLOBAL_PLACE_TCL| Specifies a Tcl script with commands to run before global placement.| |
 | <a name="PRE_GLOBAL_ROUTE_TCL"></a>PRE_GLOBAL_ROUTE_TCL| Specifies a Tcl script with commands to run before global route.| |
+| <a name="PRE_IO_PLACEMENT_TCL"></a>PRE_IO_PLACEMENT_TCL| Specifies a Tcl script with commands to run before IO placement.| |
+| <a name="PRE_MACRO_PLACE_TCL"></a>PRE_MACRO_PLACE_TCL| Specifies a Tcl script with commands to run before macro placement.| |
+| <a name="PRE_PDN_TCL"></a>PRE_PDN_TCL| Specifies a Tcl script with commands to run before PDN generation.| |
+| <a name="PRE_REPAIR_TIMING_POST_PLACE_TCL"></a>PRE_REPAIR_TIMING_POST_PLACE_TCL| Specifies a Tcl script with commands to run before post-place timing repair.| |
+| <a name="PRE_RESIZE_TCL"></a>PRE_RESIZE_TCL| Specifies a Tcl script with commands to run before resize.| |
+| <a name="PRE_SYNTH_TCL"></a>PRE_SYNTH_TCL| Specifies a Tcl script with commands to run before synthesis ODB generation.| |
+| <a name="PRE_TAPCELL_TCL"></a>PRE_TAPCELL_TCL| Specifies a Tcl script with commands to run before tapcell.| |
 | <a name="PROCESS"></a>PROCESS| Technology node or process in use.| |
 | <a name="PWR_NETS_VOLTAGES"></a>PWR_NETS_VOLTAGES| Used for IR Drop calculation.| |
 | <a name="RCX_RULES"></a>RCX_RULES| RC Extraction rules file path.| |
@@ -273,6 +305,7 @@ configuration file.
 | <a name="TIELO_CELL_AND_PORT"></a>TIELO_CELL_AND_PORT| Tie low cells used in Yosys synthesis to replace a logical 0 in the Netlist.| |
 | <a name="TIE_SEPARATION"></a>TIE_SEPARATION| Distance separating tie high/low instances from the load.| 0|
 | <a name="TNS_END_PERCENT"></a>TNS_END_PERCENT| Default TNS_END_PERCENT value for post CTS timing repair. Try fixing all violating endpoints by default (reduce to 5% for runtime). Specifies how many percent of violating paths to fix [0-100]. Worst path will always be fixed.| 100|
+| <a name="UNSET_ABC9_BOX_CELLS"></a>UNSET_ABC9_BOX_CELLS| List of cells to unset the abc9_box attribute on| |
 | <a name="USE_FILL"></a>USE_FILL| Whether to perform metal density filling.| 0|
 | <a name="VERILOG_DEFINES"></a>VERILOG_DEFINES| Preprocessor defines passed to the language frontend. Example: `-D HPDCACHE_ASSERT_OFF`| |
 | <a name="VERILOG_FILES"></a>VERILOG_FILES| The path to the design Verilog/SystemVerilog files providing a description of modules.| |
@@ -291,6 +324,8 @@ configuration file.
 - [DFF_MAP_FILE](#DFF_MAP_FILE)
 - [LATCH_MAP_FILE](#LATCH_MAP_FILE)
 - [MIN_BUF_CELL_AND_PORTS](#MIN_BUF_CELL_AND_PORTS)
+- [POST_SYNTH_TCL](#POST_SYNTH_TCL)
+- [PRE_SYNTH_TCL](#PRE_SYNTH_TCL)
 - [SDC_FILE](#SDC_FILE)
 - [SDC_GUT](#SDC_GUT)
 - [SYNTH_ARGS](#SYNTH_ARGS)
@@ -315,6 +350,7 @@ configuration file.
 - [SYNTH_WRAPPED_MULTIPLIERS](#SYNTH_WRAPPED_MULTIPLIERS)
 - [TIEHI_CELL_AND_PORT](#TIEHI_CELL_AND_PORT)
 - [TIELO_CELL_AND_PORT](#TIELO_CELL_AND_PORT)
+- [UNSET_ABC9_BOX_CELLS](#UNSET_ABC9_BOX_CELLS)
 - [VERILOG_DEFINES](#VERILOG_DEFINES)
 - [VERILOG_FILES](#VERILOG_FILES)
 - [VERILOG_INCLUDE_DIRS](#VERILOG_INCLUDE_DIRS)
@@ -349,6 +385,14 @@ configuration file.
 - [PLACE_DENSITY](#PLACE_DENSITY)
 - [PLACE_DENSITY_LB_ADDON](#PLACE_DENSITY_LB_ADDON)
 - [PLACE_SITE](#PLACE_SITE)
+- [POST_FLOORPLAN_TCL](#POST_FLOORPLAN_TCL)
+- [POST_MACRO_PLACE_TCL](#POST_MACRO_PLACE_TCL)
+- [POST_PDN_TCL](#POST_PDN_TCL)
+- [POST_TAPCELL_TCL](#POST_TAPCELL_TCL)
+- [PRE_FLOORPLAN_TCL](#PRE_FLOORPLAN_TCL)
+- [PRE_MACRO_PLACE_TCL](#PRE_MACRO_PLACE_TCL)
+- [PRE_PDN_TCL](#PRE_PDN_TCL)
+- [PRE_TAPCELL_TCL](#PRE_TAPCELL_TCL)
 - [REMOVE_ABC_BUFFERS](#REMOVE_ABC_BUFFERS)
 - [ROUTING_LAYER_ADJUSTMENT](#ROUTING_LAYER_ADJUSTMENT)
 - [RTLMP_AREA_WT](#RTLMP_AREA_WT)
@@ -408,6 +452,18 @@ configuration file.
 - [PLACE_DENSITY](#PLACE_DENSITY)
 - [PLACE_DENSITY_LB_ADDON](#PLACE_DENSITY_LB_ADDON)
 - [PLACE_PINS_ARGS](#PLACE_PINS_ARGS)
+- [POST_DETAIL_PLACE_TCL](#POST_DETAIL_PLACE_TCL)
+- [POST_GLOBAL_PLACE_SKIP_IO_TCL](#POST_GLOBAL_PLACE_SKIP_IO_TCL)
+- [POST_GLOBAL_PLACE_TCL](#POST_GLOBAL_PLACE_TCL)
+- [POST_IO_PLACEMENT_TCL](#POST_IO_PLACEMENT_TCL)
+- [POST_REPAIR_TIMING_POST_PLACE_TCL](#POST_REPAIR_TIMING_POST_PLACE_TCL)
+- [POST_RESIZE_TCL](#POST_RESIZE_TCL)
+- [PRE_DETAIL_PLACE_TCL](#PRE_DETAIL_PLACE_TCL)
+- [PRE_GLOBAL_PLACE_SKIP_IO_TCL](#PRE_GLOBAL_PLACE_SKIP_IO_TCL)
+- [PRE_GLOBAL_PLACE_TCL](#PRE_GLOBAL_PLACE_TCL)
+- [PRE_IO_PLACEMENT_TCL](#PRE_IO_PLACEMENT_TCL)
+- [PRE_REPAIR_TIMING_POST_PLACE_TCL](#PRE_REPAIR_TIMING_POST_PLACE_TCL)
+- [PRE_RESIZE_TCL](#PRE_RESIZE_TCL)
 - [ROUTING_LAYER_ADJUSTMENT](#ROUTING_LAYER_ADJUSTMENT)
 - [SKIP_REPORT_METRICS](#SKIP_REPORT_METRICS)
 - [TNS_END_PERCENT](#TNS_END_PERCENT)
@@ -430,6 +486,7 @@ configuration file.
 - [MATCH_CELL_FOOTPRINT](#MATCH_CELL_FOOTPRINT)
 - [MAX_REPAIR_TIMING_ITER](#MAX_REPAIR_TIMING_ITER)
 - [POST_CTS_TCL](#POST_CTS_TCL)
+- [PRE_CTS_TCL](#PRE_CTS_TCL)
 - [REMOVE_CELLS_FOR_EQY](#REMOVE_CELLS_FOR_EQY)
 - [REPORT_CLOCK_SKEW](#REPORT_CLOCK_SKEW)
 - [SETUP_REPAIR_SEQUENCE](#SETUP_REPAIR_SEQUENCE)
@@ -453,6 +510,7 @@ configuration file.
 - [MAX_REPAIR_TIMING_ITER](#MAX_REPAIR_TIMING_ITER)
 - [MAX_ROUTING_LAYER](#MAX_ROUTING_LAYER)
 - [MIN_ROUTING_LAYER](#MIN_ROUTING_LAYER)
+- [POST_GLOBAL_ROUTE_TCL](#POST_GLOBAL_ROUTE_TCL)
 - [PRE_GLOBAL_ROUTE_TCL](#PRE_GLOBAL_ROUTE_TCL)
 - [REPORT_CLOCK_SKEW](#REPORT_CLOCK_SKEW)
 - [ROUTING_LAYER_ADJUSTMENT](#ROUTING_LAYER_ADJUSTMENT)
@@ -478,6 +536,10 @@ configuration file.
 - [MAX_REPAIR_ANTENNAS_ITER_DRT](#MAX_REPAIR_ANTENNAS_ITER_DRT)
 - [MAX_ROUTING_LAYER](#MAX_ROUTING_LAYER)
 - [MIN_ROUTING_LAYER](#MIN_ROUTING_LAYER)
+- [POST_DETAIL_ROUTE_TCL](#POST_DETAIL_ROUTE_TCL)
+- [POST_FILLCELL_TCL](#POST_FILLCELL_TCL)
+- [PRE_DETAIL_ROUTE_TCL](#PRE_DETAIL_ROUTE_TCL)
+- [PRE_FILLCELL_TCL](#PRE_FILLCELL_TCL)
 - [REPORT_CLOCK_SKEW](#REPORT_CLOCK_SKEW)
 - [ROUTING_LAYER_ADJUSTMENT](#ROUTING_LAYER_ADJUSTMENT)
 - [SKIP_ANTENNA_REPAIR_POST_DRT](#SKIP_ANTENNA_REPAIR_POST_DRT)
@@ -491,6 +553,10 @@ configuration file.
 - [GND_NETS_VOLTAGES](#GND_NETS_VOLTAGES)
 - [MAX_ROUTING_LAYER](#MAX_ROUTING_LAYER)
 - [MIN_ROUTING_LAYER](#MIN_ROUTING_LAYER)
+- [POST_DENSITY_FILL_TCL](#POST_DENSITY_FILL_TCL)
+- [POST_FINAL_REPORT_TCL](#POST_FINAL_REPORT_TCL)
+- [PRE_DENSITY_FILL_TCL](#PRE_DENSITY_FILL_TCL)
+- [PRE_FINAL_REPORT_TCL](#PRE_FINAL_REPORT_TCL)
 - [PWR_NETS_VOLTAGES](#PWR_NETS_VOLTAGES)
 - [REPORT_CLOCK_SKEW](#REPORT_CLOCK_SKEW)
 - [ROUTING_LAYER_ADJUSTMENT](#ROUTING_LAYER_ADJUSTMENT)

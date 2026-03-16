@@ -1,3 +1,8 @@
+# Extract cell names
+proc get_liberty_cell_names { } {
+  return [tee -q -s result.string select -list-mod =A:liberty_cell]
+}
+
 proc log_cmd { cmd args } {
   # log the command, escape arguments with spaces
   set log_cmd "$cmd[join [lmap arg $args { format " %s" [expr { [string match {* *} $arg] ? "\"$arg\"" : "$arg" }] }] ""]" ;# tclint-disable-line line-length
@@ -192,6 +197,7 @@ proc source_env_var_if_exists { env_var } {
   }
 }
 
+
 # Feature toggle for now, eventually the -hier option
 # will be default and this code will be deleted.
 proc hier_options { } {
@@ -289,4 +295,9 @@ proc orfs_write_sdc { output_file } {
     return
   }
   log_cmd write_sdc -no_timestamp $output_file
+}
+
+proc source_step_tcl { hook_type step_name } {
+  set env_var "${hook_type}_${step_name}_TCL"
+  source_env_var_if_exists $env_var
 }

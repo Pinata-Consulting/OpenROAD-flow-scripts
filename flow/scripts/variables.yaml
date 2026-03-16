@@ -354,6 +354,11 @@ TIE_SEPARATION:
   stages:
     - floorplan
   default: 0
+UNSET_ABC9_BOX_CELLS:
+  description: |
+    List of cells to unset the abc9_box attribute on
+  stages:
+    - synth
 EARLY_SIZING_CAP_RATIO:
   description: |
     Ratio between the input pin capacitance and the output pin load during initial gate sizing.
@@ -1032,6 +1037,166 @@ POST_CTS_TCL:
     Specifies a Tcl script with commands to run after CTS is completed.
   stages:
     - cts
+POST_DENSITY_FILL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after density fill.
+  stages:
+    - final
+POST_DETAIL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after detailed placement.
+  stages:
+    - place
+POST_DETAIL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after detailed route.
+  stages:
+    - route
+POST_FILLCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after fillcell insertion.
+  stages:
+    - route
+POST_FINAL_REPORT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after final report generation.
+  stages:
+    - final
+POST_FLOORPLAN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after floorplan is completed.
+  stages:
+    - floorplan
+POST_GLOBAL_PLACE_SKIP_IO_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global placement (skip IO).
+  stages:
+    - place
+POST_GLOBAL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global placement.
+  stages:
+    - place
+POST_GLOBAL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global route.
+  stages:
+    - grt
+POST_IO_PLACEMENT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after IO placement.
+  stages:
+    - place
+POST_MACRO_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after macro placement.
+  stages:
+    - floorplan
+POST_PDN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after PDN generation.
+  stages:
+    - floorplan
+POST_REPAIR_TIMING_POST_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after post-place timing repair.
+  stages:
+    - place
+POST_RESIZE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after resize.
+  stages:
+    - place
+POST_SYNTH_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after synthesis ODB generation.
+  stages:
+    - synth
+POST_TAPCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after tapcell.
+  stages:
+    - floorplan
+PRE_CTS_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before CTS.
+  stages:
+    - cts
+PRE_DENSITY_FILL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before density fill.
+  stages:
+    - final
+PRE_DETAIL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before detailed placement.
+  stages:
+    - place
+PRE_DETAIL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before detailed route.
+  stages:
+    - route
+PRE_FILLCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before fillcell insertion.
+  stages:
+    - route
+PRE_FINAL_REPORT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before final report generation.
+  stages:
+    - final
+PRE_FLOORPLAN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before floorplan.
+  stages:
+    - floorplan
+PRE_GLOBAL_PLACE_SKIP_IO_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before global placement (skip IO).
+  stages:
+    - place
+PRE_GLOBAL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before global placement.
+  stages:
+    - place
+PRE_IO_PLACEMENT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before IO placement.
+  stages:
+    - place
+PRE_MACRO_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before macro placement.
+  stages:
+    - floorplan
+PRE_PDN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before PDN generation.
+  stages:
+    - floorplan
+PRE_REPAIR_TIMING_POST_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before post-place timing repair.
+  stages:
+    - place
+PRE_RESIZE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before resize.
+  stages:
+    - place
+PRE_SYNTH_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before synthesis ODB generation.
+  stages:
+    - synth
+PRE_TAPCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before tapcell.
+  stages:
+    - floorplan
 FASTROUTE_TCL:
   description: |
     Specifies a Tcl script with commands to run before FastRoute.

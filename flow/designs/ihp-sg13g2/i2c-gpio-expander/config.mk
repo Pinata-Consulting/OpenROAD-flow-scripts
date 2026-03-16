@@ -40,6 +40,8 @@ sg13g2_IOPadIOVss_inst \
 sg13g2_IOPadIOVdd_inst
 export FOOTPRINT_TCL = $(PLATFORM_DIR)/pad.tcl
 
+export MACRO_PLACEMENT_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/macros.tcl
+
 export PDN_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/pdn.tcl
 
 export BLOCKS = I2cDeviceCtrl

@@ -3,6 +3,7 @@ source $::env(SCRIPTS_DIR)/load.tcl
 source $::env(SCRIPTS_DIR)/lec_check.tcl
 erase_non_stage_variables cts
 load_design 3_place.odb 3_place.sdc
+source_step_tcl PRE CTS
 
 # Clone clock tree inverters next to register loads
 # so cts does not try to buffer the inverted clocks.
@@ -86,7 +87,7 @@ if { !$::env(SKIP_CTS_REPAIR_TIMING) } {
 
 report_metrics 4 "cts final"
 
-source_env_var_if_exists POST_CTS_TCL
+source_step_tcl POST CTS
 
 orfs_write_db $::env(RESULTS_DIR)/4_1_cts.odb
 orfs_write_sdc $::env(RESULTS_DIR)/4_cts.sdc

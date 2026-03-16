@@ -2,6 +2,7 @@ utl::set_metrics_stage "floorplan__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
 erase_non_stage_variables floorplan
 load_design 1_synth.odb 1_synth.sdc
+source_step_tcl PRE FLOORPLAN
 
 proc report_unused_masters { } {
   set db [ord::get_db]
@@ -146,9 +147,10 @@ if { $::env(REMOVE_ABC_BUFFERS) } {
 puts "Default units for flow"
 report_units
 report_units_metric
+report_layer_rc
 report_metrics 2 "floorplan final" false false
 
-source_env_var_if_exists POST_FLOORPLAN_TCL
+source_step_tcl POST FLOORPLAN
 source_env_var_if_exists IO_CONSTRAINTS
 
 orfs_write_db $::env(RESULTS_DIR)/2_1_floorplan.odb
