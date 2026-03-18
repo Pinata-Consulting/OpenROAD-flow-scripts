@@ -12,7 +12,7 @@
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
-        "value": 22298,
+        "value": 20599,
         "compare": "<="
     },
     "detailedplace__design__violations": {
@@ -28,19 +28,19 @@
         "compare": "<="
     },
     "cts__timing__setup__ws": {
-        "value": -0.225,
+        "value": -0.207,
         "compare": ">="
     },
     "cts__timing__setup__tns": {
-        "value": -0.9,
+        "value": -0.828,
         "compare": ">="
     },
     "cts__timing__hold__ws": {
-        "value": -0.225,
+        "value": -0.18,
         "compare": ">="
     },
     "cts__timing__hold__tns": {
-        "value": -0.9,
+        "value": -0.72,
         "compare": ">="
     },
     "globalroute__antenna_diodes_count": {
@@ -48,23 +48,23 @@
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -0.225,
+        "value": -1.24,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {
-        "value": -0.9,
+        "value": -20.3,
         "compare": ">="
     },
     "globalroute__timing__hold__ws": {
-        "value": -0.225,
+        "value": -0.18,
         "compare": ">="
     },
     "globalroute__timing__hold__tns": {
-        "value": -0.9,
+        "value": -0.72,
         "compare": ">="
     },
     "detailedroute__route__wirelength": {
-        "value": 802994,
+        "value": 658967,
         "compare": "<="
     },
     "detailedroute__route__drc_errors": {
@@ -80,23 +80,23 @@
         "compare": "<="
     },
     "finish__timing__setup__ws": {
-        "value": -0.225,
+        "value": -1.03,
         "compare": ">="
     },
     "finish__timing__setup__tns": {
-        "value": -0.9,
+        "value": -8.65,
         "compare": ">="
     },
     "finish__timing__hold__ws": {
-        "value": -0.225,
+        "value": -0.18,
         "compare": ">="
     },
     "finish__timing__hold__tns": {
-        "value": -0.9,
+        "value": -0.72,
         "compare": ">="
     },
     "finish__design__instance__area": {
-        "value": 135288,
+        "value": 155682,
         "compare": "<="
     }
 }

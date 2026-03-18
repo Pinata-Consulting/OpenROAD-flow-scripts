@@ -1,7 +1,9 @@
 utl::set_metrics_stage "cts__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
+source $::env(SCRIPTS_DIR)/lec_check.tcl
 erase_non_stage_variables cts
 load_design 3_place.odb 3_place.sdc
+source_step_tcl PRE CTS
 
 # Clone clock tree inverters next to register loads
 # so cts does not try to buffer the inverted clocks.
@@ -60,11 +62,18 @@ if { !$::env(SKIP_CTS_REPAIR_TIMING) } {
   if { $::env(EQUIVALENCE_CHECK) } {
     write_eqy_verilog 4_before_rsz.v
   }
+  if { $::env(LEC_CHECK) } {
+    write_lec_verilog 4_before_rsz_lec.v
+  }
 
   repair_timing_helper
 
   if { $::env(EQUIVALENCE_CHECK) } {
     run_equivalence_test
+  }
+  if { $::env(LEC_CHECK) } {
+    write_lec_verilog 4_after_rsz_lec.v
+    run_lec_test 4_rsz 4_before_rsz_lec.v 4_after_rsz_lec.v
   }
 
   set result [catch { detailed_placement } msg]
@@ -78,7 +87,7 @@ if { !$::env(SKIP_CTS_REPAIR_TIMING) } {
 
 report_metrics 4 "cts final"
 
-source_env_var_if_exists POST_CTS_TCL
+source_step_tcl POST CTS
 
 orfs_write_db $::env(RESULTS_DIR)/4_1_cts.odb
 orfs_write_sdc $::env(RESULTS_DIR)/4_cts.sdc
