@@ -60,7 +60,7 @@ update_rules: do-update_rules do-copy_update_rules
 .PHONY: do-update_rules_force
 do-update_rules_force:
 	mkdir -p $(REPORTS_DIR)
-	$(UTILS_DIR)/genRuleFile.py \
+	$(PYTHON_EXE) $(UTILS_DIR)/genRuleFile.py \
 	    --rules $(RULES_JSON) \
 	    --new-rules $(REPORTS_DIR)/rules.json \
 	    --reference $(REPORTS_DIR)/metadata.json \
@@ -90,6 +90,12 @@ write_net_rc: $(RESULTS_DIR)/6_net_rc.csv
 #$(RESULTS_DIR)/6_net_rc.csv: $(RESULTS_DIR)/4_cts.odb $(RESULTS_DIR)/6_final.spef
 $(RESULTS_DIR)/6_net_rc.csv:
 	($(TIME_CMD) $(OPENROAD_CMD) $(UTILS_DIR)/write_net_rc_script.tcl) 2>&1 | tee $(LOG_DIR)/6_write_net_rc.log
+
+.PHONY: write_segment_rc
+write_segment_rc: $(RESULTS_DIR)/6_segment_rc.csv
+
+$(RESULTS_DIR)/6_segment_rc.csv:
+	($(TIME_CMD) $(OPENROAD_CMD) $(UTILS_DIR)/write_segment_rc_script.tcl) 2>&1 | tee $(LOG_DIR)/6_write_segment_rc.log
 
 .PHONY: correlate_rc
 correlate_rc: $(RESULTS_DIR)/6_net_rc.csv
@@ -151,7 +157,7 @@ $(RESULTS_DIR)/6_final_no_power.def: $(RESULTS_DIR)/6_final.def
 
 
 .PHONY: gallery
-gallery: $(RESULTS_DIR)/6_final_no_power.def $(RESULTS_DIR)/6_final_only_clk.def
+gallery: check-klayout $(RESULTS_DIR)/6_final_no_power.def $(RESULTS_DIR)/6_final_only_clk.def
 	($(TIME_CMD) klayout -z -nc -rx -rd gallery_json=util/gallery.json \
 	        -rd results_path=$(RESULTS_DIR) \
 	        -rd tech_file=$(OBJECTS_DIR)/klayout.lyt \

@@ -1,9 +1,42 @@
+#
+# Extracts and returns module names from Verilog file
+#
+proc get_module_names { file_path } {
+  set module_list [list]
+  if { [catch { set fid [open $file_path r] } err] } {
+    error "Failed to open file $file_path: $err"
+  }
+
+  set regex {^[ \t]*module[ \t]+([A-Za-z_$][A-Za-z0-9_$]*)}
+
+  while { [gets $fid line] >= 0 } {
+    if { [regexp -nocase $regex $line match_all module_name] } {
+      lappend module_list $module_name
+    }
+  }
+
+  close $fid
+  return $module_list
+}
+
+#
+# Builds dfflegalize arg list
+#
+proc get_dfflegalize_args { file_path } {
+  set legalize_args [list]
+  set module_names [get_module_names $file_path]
+  foreach module_name $module_names {
+    lappend legalize_args -cell $module_name x
+  }
+  return $legalize_args
+}
+
 source $::env(SCRIPTS_DIR)/synth_preamble.tcl
 read_checkpoint $::env(RESULTS_DIR)/1_1_yosys_canonicalize.rtlil
 
 hierarchy -check -top $::env(DESIGN_NAME)
 
-if { [env_var_equals SYNTH_GUT 1] } {
+if { $::env(SYNTH_GUT) } {
   # /deletes all cells at the top level, which will quickly optimize away
   # everything else, including macros.
   delete $::env(DESIGN_NAME)/c:*
@@ -32,7 +65,7 @@ if { [env_var_exists_and_non_empty SYNTH_OPT_HIER] } {
   set synth_full_args [concat $synth_full_args -hieropt]
 }
 
-if { ![env_var_equals SYNTH_HIERARCHICAL 1] } {
+if { !$::env(SYNTH_HIERARCHICAL) } {
   # Perform standard coarse-level synthesis script, flatten right away
   synth -flatten -run :fine {*}$synth_full_args
 } else {
@@ -53,6 +86,34 @@ if { ![env_var_equals SYNTH_HIERARCHICAL 1] } {
 
   # Re-run coarse-level script, this time do pass -flatten
   synth -flatten -run coarse:fine {*}$synth_full_args
+}
+
+
+if { $::env(SYNTH_MOCK_LARGE_MEMORIES) } {
+  memory_collect
+  set select [tee -q -s result.string select -list t:\$mem_v2]
+  set report_file [open $::env(REPORTS_DIR)/synth_mocked_memories.txt "w"]
+  foreach path [split [string trim $select] "\n"] {
+    set index [string first "/" $path]
+    set module [string range $path 0 [expr { $index - 1 }]]
+    set instance [string range $path [expr { $index + 1 }] end]
+
+    set width [rtlil::get_param -uint $module $instance WIDTH]
+    set size [rtlil::get_param -uint $module $instance SIZE]
+    set nbits [expr $width * $size]
+    puts "Memory $path has dimensions $size x $width = $nbits"
+    if { $nbits > $::env(SYNTH_MEMORY_MAX_BITS) } {
+      rtlil::set_param -uint $module $instance SIZE 1
+      puts "Shrunk memory $path from $size rows to 1"
+      puts -nonewline $report_file "$module:\n  width: $width\n  size: $size\n"
+      if { $::env(SYNTH_KEEP_MOCKED_MEMORIES) } {
+        select -module $module
+        setattr -mod -set keep_hierarchy 1
+        select -clear
+      }
+    }
+  }
+  close $report_file
 }
 
 json -o $::env(RESULTS_DIR)/mem.json
@@ -92,7 +153,16 @@ renames -wire
 opt -purge
 
 # Technology mapping of adders
-if { [env_var_exists_and_non_empty ADDER_MAP_FILE] } {
+if {
+  [env_var_exists_and_non_empty ADDER_MAP_FILE] &&
+  (
+    (![env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] &&
+      ![env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]) ||
+    (([env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] ||
+        [env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]) &&
+      ![design_has_extracted_operators])
+  )
+} {
   # extract the full adders
   extract_fa
   # map full adders
@@ -111,6 +181,10 @@ if { [env_var_exists_and_non_empty LATCH_MAP_FILE] } {
 # dfflibmap only supports one liberty file
 if { [env_var_exists_and_non_empty DFF_LIB_FILE] } {
   dfflibmap -liberty $::env(DFF_LIB_FILE) {*}$lib_dont_use_args
+} elseif { [env_var_exists_and_non_empty DFF_MAP_FILE] } {
+  set legalize_args [get_dfflegalize_args $::env(DFF_MAP_FILE)]
+  dfflegalize {*}$legalize_args
+  techmap -map $::env(DFF_MAP_FILE)
 } else {
   dfflibmap {*}$lib_args {*}$lib_dont_use_args
 }
@@ -144,8 +218,10 @@ hilomap -singleton \
   -hicell {*}$::env(TIEHI_CELL_AND_PORT) \
   -locell {*}$::env(TIELO_CELL_AND_PORT)
 
-# Insert buffer cells for pass through wires
-insbuf -buf {*}$::env(MIN_BUF_CELL_AND_PORTS)
+if { $::env(SYNTH_INSBUF) } {
+  # Insert buffer cells for pass through wires
+  insbuf -buf {*}$::env(MIN_BUF_CELL_AND_PORTS)
+}
 
 # Reports
 tee -o $::env(REPORTS_DIR)/synth_check.txt check

@@ -52,12 +52,12 @@ ROUTING_LAYER_ADJUSTMENT:
     a too low value, such as 0.10, and bisect
     to value that works by doing multiple global routing runs.
     As a last resort, `make global_route_issue` and using
-    the tools/OpenROAD/etc/deltaDebug.py can be useful to debug
+    the tools/OpenROAD/etc/whittle.py can be useful to debug
     global routing errors. If there is something specific that is
     impossible to route, such as a clock line over a macro, global
     routing will terminate with DRC errors routes that could
     have been routed were it not for the specific impossible routes.
-    deltaDebug.py should weed out the possible routes and leave
+    whittle.py should weed out the possible routes and leave
     a minimal failing case that pinpoints the problem.
   stages:
     - floorplan
@@ -128,6 +128,7 @@ SKIP_REPORT_METRICS:
     - grt
     - route
     - final
+  default: 0
 PROCESS:
   description: |
     Technology node or process in use.
@@ -163,6 +164,7 @@ SYNTH_GUT:
     instance.
   stages:
     - synth
+  default: 0
 SYNTH_HIERARCHICAL:
   description: |
     Enable to Synthesis hierarchically, otherwise considered flat synthesis.
@@ -172,7 +174,68 @@ SYNTH_HIERARCHICAL:
 SYNTH_MEMORY_MAX_BITS:
   description: >
     Maximum number of bits for memory synthesis.
+
+    Ideally, real RAM or realistic fakeram should be used for RAMs
+    much larger than 1024 bits.
+
+    To temporarily ignore the RAM concerns and investigate other
+    aspects of the design, consider setting `SYNTH_MOCK_LARGE_MEMORIES=1`,
+    or adjusting `SYNTH_MEMORY_MAX_BITS`.
   default: 4096
+  stages:
+    - synth
+SYNTH_MOCK_LARGE_MEMORIES:
+  description: >
+    Reduce Yosys inferred memories larger than SYNTH_MEMORY_MAX_BITS to 1 row.
+
+    Yosys will generally infer memories from behavioral Verilog code, whether
+    the memories are in standalone modules or instantiated within some
+    larger module.
+
+    fakeram and empty Verilog memories(blackboxes) of memories will not
+    be inferred memories by Yosys and are therefore not affected by
+    this variable.
+
+    This is useful and convenient to separate the concern of instantiating
+    and placing memories from investigating other issues with a design,
+    though it comes at the expense of the increased accuracy that using
+    realistic fakemem would provide.
+
+    Memories with a single 1 row will of course have unrealistically good
+    timing and area characteristics, but timing will still correctly terminate
+    in a register.
+
+    Large port memories, typically register files, will still have the
+    retain a lot of the port logic that can be useful to investigate issues.
+
+    This can be especially useful during development of designs where the
+    behavioral model comes first and suitable memories are matched up
+    when the design RTL is stable.
+
+    A typical use case would be Chisel which will generate a behavioral model
+    for a memories with the required clocks, ports, etc. in addition to a
+    computer readable file with the specification of the memories that
+    is used to
+    [automatically](https://chipyard.readthedocs.io/en/stable/Tools/Barstools.html/)
+    match up suitable memory macros later in the flow.
+
+    During an architectural screening study, a large range of memory
+    configurations can be investigated quickly with this option,
+    without getting bogged down in the concern of how to realize the
+    memories in silicon for emphemral RTL configurations that exist
+    only long enough to run through the ORFS flow to create a table
+    of some characteristics of a design configuration.
+  default: 0
+  stages:
+    - synth
+SYNTH_KEEP_MOCKED_MEMORIES:
+  description: >
+    When `SYNTH_MOCK_LARGE_MEMORIES=1`, setting this to 1,
+    will keep mocked memories (not flattening them).
+
+    This preserves some of the access logic complexity and
+    avoids optimizations outside of the mocked memory.
+  default: 1
   stages:
     - synth
 SYNTH_HDL_FRONTEND:
@@ -182,10 +245,19 @@ SYNTH_HDL_FRONTEND:
     command.
   stages:
     - synth
+SYNTH_SLANG_ARGS:
+  description: >
+    Additional arguments passed to the slang frontend during synthesis.
+  stages:
+    - synth
+  default: ""
 SYNTH_BLACKBOXES:
   description: >
     List of cells treated as a black box by Yosys. With Bazel, this can be used
     to run synthesis in parallel for the large modules of the design.
+
+    Non-existant modules are ignored silently, useful when listing modules
+    statically, even if modules come and go dynamically.
   stages:
     - synth
 SYNTH_NETLIST_FILES:
@@ -223,19 +295,44 @@ SYNTH_RETIME_MODULES:
     optimal distribution of registers on long pipelines. See OR discussion #8080.
   stages:
     - synth
+SYNTH_REPEATABLE_BUILD:
+  description: >
+    License to prune anything that makes builds less repeatable, typically
+    used with Bazel to ensure that builds are bit-for-bit identical so that
+    caching works optimally.
+
+    Removes debug information that encodes paths, timestamps, etc.
+  stages:
+    - synth
+  default: 0
+SYNTH_INSBUF:
+  description: >
+    Insert input buffers on top-level input ports during synthesis.
+
+    Useful to disable when doing parallel synthesis and
+    concatenating netlists later as we're generating netlists
+    of submodules.
+  stages:
+    - synth
+  default: 1
+DFF_MAP_FILE:
+  description: |
+    Optional mapping file supplied to Yosys to map D flip-flops
+  stages:
+    - synth
 LATCH_MAP_FILE:
   description: |
-    List of latches treated as a black box by Yosys.
+    Optional mapping file supplied to Yosys to map latches
   stages:
     - synth
 CLKGATE_MAP_FILE:
   description: |
-    List of cells for gating clock treated as a black box by Yosys.
+    Optional mapping file supplied to Yosys to map clock gating cells
   stages:
     - synth
 ADDER_MAP_FILE:
   description: |
-    List of adders treated as a black box by Yosys.
+    Optional mapping file supplied to Yosys to map adders
   stages:
     - synth
 TIEHI_CELL_AND_PORT:
@@ -257,6 +354,11 @@ TIE_SEPARATION:
   stages:
     - floorplan
   default: 0
+UNSET_ABC9_BOX_CELLS:
+  description: |
+    List of cells to unset the abc9_box attribute on
+  stages:
+    - synth
 EARLY_SIZING_CAP_RATIO:
   description: |
     Ratio between the input pin capacitance and the output pin load during initial gate sizing.
@@ -322,6 +424,17 @@ FLOORPLAN_DEF:
   stages:
     - floorplan
     - place
+DONT_BUFFER_PORTS:
+  description: >
+    Do not buffer input/output ports during floorplanning.
+  stages:
+    - place
+  default: 0
+BUFFER_PORTS_ARGS:
+  description: >
+    Specify arguments to the buffer_ports call during placement. Only used if DONT_BUFFER_PORTS=0.
+  stages:
+    - place
 REMOVE_ABC_BUFFERS:
   description: >
     Remove abc buffers from the netlist. If timing repair in floorplanning is
@@ -330,6 +443,13 @@ REMOVE_ABC_BUFFERS:
   stages:
     - floorplan
   deprecated: 1
+  default: 0
+BALANCE_ROWS:
+  description: |
+    Balance rows during placement.
+  stages:
+    - place
+  default: 0
 PLACE_SITE:
   description: |
     Placement site for core cells defined in the technology LEF file.
@@ -337,6 +457,10 @@ PLACE_SITE:
     - floorplan
   type: string
   tunable: 1
+LAYER_PARASITICS_FILE:
+  description: |
+    Path to per layer parasitics file. Defaults to $(PLATFORM_DIR)/setRC.tcl.
+  type: string
 TAPCELL_TCL:
   description: |
     Path to Endcap and Welltie cells file.
@@ -418,6 +542,11 @@ CELL_PAD_IN_SITES_GLOBAL_PLACEMENT:
   default: 0
   type: int
   tunable: 1
+DETAIL_PLACEMENT_ARGS:
+  description: >
+    Specify arguments to the detailed_placement call during placement.
+  stages:
+    - place
 CELL_PAD_IN_SITES_DETAIL_PLACEMENT:
   description: >
     Cell padding on both sides in site widths to ease routability in detail
@@ -464,6 +593,8 @@ GLOBAL_PLACEMENT_ARGS:
   description: >
     Use additional tuning parameters during global placement other than default
     args defined in global_place.tcl.
+  stages:
+    - place
 ENABLE_DPO:
   description: |
     Enable detail placement with improve_placement feature.
@@ -484,6 +615,30 @@ GPL_ROUTABILITY_DRIVEN:
   stages:
     - place
   default: 1
+MIN_PLACE_STEP_COEF:
+  description: >
+    Sets the minimum phi coefficient (pcof_min / µ_k Lower Bound) for global
+    placement optimization. This parameter controls the step size lower bound
+    in the RePlAce Nesterov optimization algorithm. Lower values may improve
+    convergence but can increase runtime.
+    Valid range: 0.95-1.05
+  default: 0.95
+  stages:
+    - place
+  tunable: 1
+  type: float
+MAX_PLACE_STEP_COEF:
+  description: >
+    Sets the maximum phi coefficient (pcof_max / µ_k Upper Bound) for global
+    placement optimization. This parameter controls the step size upper bound
+    in the RePlAce Nesterov optimization algorithm. Higher values allow more
+    aggressive optimization but may risk divergence.
+    Valid range: 1.00-1.20
+  default: 1.05
+  stages:
+    - place
+  tunable: 1
+  type: float
 CAP_MARGIN:
   description: >
     Specifies a capacitance margin when fixing max capacitance violations. This
@@ -497,6 +652,12 @@ CTS_ARGS:
     Override `clock_tree_synthesis` arguments.
   stages:
     - cts
+CTS_SNAPSHOTS:
+  description: |
+    Create ODB/SDC files at different stages of CTS.
+  stages:
+    - cts
+  default: 0
 HOLD_SLACK_MARGIN:
   description: >
     Specifies a time margin for the slack when fixing hold violations.
@@ -611,11 +772,13 @@ SKIP_CTS_REPAIR_TIMING:
     architectural exploration or when getting CI up and running.
   stages:
     - cts
+  default: 0
 SKIP_REPAIR_TIE_FANOUT:
   description: >
     Skip repair_tie_fanout at floorplan step.
   stages:
     - floorplan
+  default: 0
 MIN_ROUTING_LAYER:
   description: |
     The lowest metal layer name to be used in routing.
@@ -758,10 +921,14 @@ SYNTH_KEEP_MODULES:
 SYNTH_ARGS:
   description: |
     Optional synthesis variables for yosys.
+  stages:
+    - synth
 SYNTH_HIER_SEPARATOR:
   description: |
     Separator used for the synthesis flatten stage.
   default: .
+  stages:
+    - synth
 SYNTH_OPT_HIER:
   description: |
     Optimize constants across hierarchical boundaries.
@@ -769,13 +936,15 @@ SYNTH_OPT_HIER:
     - synth
 VERILOG_TOP_PARAMS:
   description: |
-    Apply toplevel params (if exist).
+    Apply toplevel params (if exist). Passed in as a list of key value pairs
+    in tcl syntax; separated by spaces: PARAM1 VALUE1 PARAM2 VALUE2
   stages:
     - synth
 CORE_ASPECT_RATIO:
   description: >
-    The core aspect ratio (height / width). This value is ignored if
-    `CORE_UTILIZATION` is undefined.
+    The core aspect ratio (height / width).
+
+    This variable is only used when `CORE_UTILIZATION` is set.
   stages:
     - floorplan
   default: 1.0
@@ -786,8 +955,9 @@ CORE_MARGIN:
     The margin between the core area and die area, specified in microns.
     Allowed values are either one value for all margins or a set of four
     values, one for each margin. The order of the four values are:
-    `{bottom top left right}`. This variable is ignored if `CORE_UTILIZATION`
-    is undefined.
+    `{bottom top left right}`.
+
+    This variable is only used when `CORE_UTILIZATION` is set.
   stages:
     - floorplan
   default: 1.0
@@ -832,6 +1002,12 @@ CTS_BUF_LIST:
     List of cells used to construct the clock tree. Overrides buffer inference.
   stages:
     - cts
+CLUSTER_FLOPS:
+  description: >
+    Minimum number of flip-flops per sink cluster.
+  stages:
+    - place
+  default: 0
 CTS_CLUSTER_DIAMETER:
   description: >
     Maximum diameter (in microns) of sink cluster.
@@ -861,6 +1037,166 @@ POST_CTS_TCL:
     Specifies a Tcl script with commands to run after CTS is completed.
   stages:
     - cts
+POST_DENSITY_FILL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after density fill.
+  stages:
+    - final
+POST_DETAIL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after detailed placement.
+  stages:
+    - place
+POST_DETAIL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after detailed route.
+  stages:
+    - route
+POST_FILLCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after fillcell insertion.
+  stages:
+    - route
+POST_FINAL_REPORT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after final report generation.
+  stages:
+    - final
+POST_FLOORPLAN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after floorplan is completed.
+  stages:
+    - floorplan
+POST_GLOBAL_PLACE_SKIP_IO_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global placement (skip IO).
+  stages:
+    - place
+POST_GLOBAL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global placement.
+  stages:
+    - place
+POST_GLOBAL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after global route.
+  stages:
+    - grt
+POST_IO_PLACEMENT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after IO placement.
+  stages:
+    - place
+POST_MACRO_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after macro placement.
+  stages:
+    - floorplan
+POST_PDN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after PDN generation.
+  stages:
+    - floorplan
+POST_REPAIR_TIMING_POST_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after post-place timing repair.
+  stages:
+    - place
+POST_RESIZE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after resize.
+  stages:
+    - place
+POST_SYNTH_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after synthesis ODB generation.
+  stages:
+    - synth
+POST_TAPCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run after tapcell.
+  stages:
+    - floorplan
+PRE_CTS_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before CTS.
+  stages:
+    - cts
+PRE_DENSITY_FILL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before density fill.
+  stages:
+    - final
+PRE_DETAIL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before detailed placement.
+  stages:
+    - place
+PRE_DETAIL_ROUTE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before detailed route.
+  stages:
+    - route
+PRE_FILLCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before fillcell insertion.
+  stages:
+    - route
+PRE_FINAL_REPORT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before final report generation.
+  stages:
+    - final
+PRE_FLOORPLAN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before floorplan.
+  stages:
+    - floorplan
+PRE_GLOBAL_PLACE_SKIP_IO_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before global placement (skip IO).
+  stages:
+    - place
+PRE_GLOBAL_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before global placement.
+  stages:
+    - place
+PRE_IO_PLACEMENT_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before IO placement.
+  stages:
+    - place
+PRE_MACRO_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before macro placement.
+  stages:
+    - floorplan
+PRE_PDN_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before PDN generation.
+  stages:
+    - floorplan
+PRE_REPAIR_TIMING_POST_PLACE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before post-place timing repair.
+  stages:
+    - place
+PRE_RESIZE_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before resize.
+  stages:
+    - place
+PRE_SYNTH_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before synthesis ODB generation.
+  stages:
+    - synth
+PRE_TAPCELL_TCL:
+  description: |
+    Specifies a Tcl script with commands to run before tapcell.
+  stages:
+    - floorplan
 FASTROUTE_TCL:
   description: |
     Specifies a Tcl script with commands to run before FastRoute.
@@ -933,13 +1269,6 @@ RTLMP_MIN_AR:
   default: 0.33
   stages:
     - floorplan
-RTLMP_SIGNATURE_NET_THRESHOLD:
-  description: >
-    Minimum number of connections between two clusters to be identified as
-    connected.
-  default: 50
-  stages:
-    - floorplan
 RTLMP_AREA_WT:
   description: >
     Weight for the area of the current floorplan.
@@ -970,14 +1299,7 @@ RTLMP_NOTCH_WT:
   description: >
     Weight for the notch, or the existence of dead space that cannot be used
     for placement and routing.
-  default: 10.0
-  stages:
-    - floorplan
-RTLMP_DEAD_SPACE:
-  description: >
-    Specifies the target dead space percentage, which influences the
-    utilization of a cluster.
-  default: 0.05
+  default: 50.0
   stages:
     - floorplan
 RTLMP_RPT_DIR:
@@ -1003,14 +1325,14 @@ RTLMP_FENCE_UX:
   description: >
     Defines the upper right X coordinate for the global fence bounding box in
     microns.
-  default: 100000000.0
+  default: 0.0
   stages:
     - floorplan
 RTLMP_FENCE_UY:
   description: >
     Defines the upper right Y coordinate for the global fence bounding box in
     microns.
-  default: 100000000.0
+  default: 0.0
   stages:
     - floorplan
 RTLMP_ARGS:
@@ -1020,7 +1342,7 @@ RTLMP_ARGS:
     - floorplan
 GDS_ALLOW_EMPTY:
   description: >
-    Regular expression of module names of macros that have no .gds file
+    Single regular expression of module names of macros that have no .gds file
   stages:
     - final
 RUN_SCRIPT:
@@ -1061,6 +1383,24 @@ RULES_JSON:
     config.mk or from bazel-orfs.
   stages:
     - test
+SKIP_ANTENNA_REPAIR_PRE_GRT:
+  default: 0
+  description: >
+    Skips antenna repair pre-global routing.
+  stages:
+    - grt
+SKIP_ANTENNA_REPAIR_POST_DRT:
+  default: 0
+  description: >
+    Skips antenna repair post-detailed routing.
+  stages:
+    - route
+SKIP_ANTENNA_REPAIR:
+  default: 0
+  description: >
+    Skips antenna repair entirely.
+  stages:
+    - grt
 SKIP_DETAILED_ROUTE:
   default: 0
   description: >
@@ -1090,3 +1430,58 @@ OPENROAD_HIERARCHICAL:
   default: 0
   stages:
     - All stages
+MAX_REPAIR_TIMING_ITER:
+  description: >
+    Maximum number of iterations for repair setup and repair hold.
+  stages:
+    - cts
+    - floorplan
+    - grt
+    - place
+NUM_CORES:
+  description: >
+    Passed to `openroad -threads $(NUM_CORES)`, defaults to numbers
+    of cores in system as determined by system specific code in Makefile,
+    `nproc` is tried first.
+
+    OpenROAD does not limit itself to this number of cores across
+    OpenROAD running instances, which can lead to overprovisioning
+    in contexts such as bazel-orfs where there could be many
+    routing, or place jobs running at the same time.
+  stages:
+    - All stages
+KEEP_VARS:
+  description: >
+    Feature toggle to keep intermediate variables during the flow.
+    This is useful for the single-run flow, where all stages of the flow
+    are run in a single OpenROAD instance.
+  default: 0
+  stages:
+    - All stages
+WRITE_ODB_AND_SDC_EACH_STAGE:
+  description: >
+    Save out .sdc and .odb file after each stage, useful to disable
+    when using a single OpenROAD instance to run all stages of the flow.
+  stages:
+    - All stages
+  default: 1
+LEC_CHECK:
+  description: >
+    Perform a formal equivalence check between before and after netlists.
+
+    If this fails, report an issue to OpenROAD.
+  default: 0
+  stages:
+    - cts
+REMOVE_CELLS_FOR_LEC:
+  description: >
+    String patterns directly passed to write_verilog -remove_cells <> for
+    lec checks.
+  type: string
+ASAP7_USE_VT:
+  description: >
+    A space separated list of VT options to use with the ASAP7 standard cell library:
+    RVT, LVT, SLVT.
+  stages:
+    - All stages
+  default: RVT

@@ -1,6 +1,6 @@
 {
     "synth__design__instance__area__stdcell": {
-        "value": 32643.82,
+        "value": 32500.0,
         "compare": "<="
     },
     "constraints__clocks__count": {
@@ -8,7 +8,7 @@
         "compare": "=="
     },
     "placeopt__design__instance__area": {
-        "value": 32826,
+        "value": 32579,
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
@@ -28,11 +28,11 @@
         "compare": "<="
     },
     "cts__timing__setup__ws": {
-        "value": -0.134,
+        "value": -0.11,
         "compare": ">="
     },
     "cts__timing__setup__tns": {
-        "value": -0.503,
+        "value": -0.44,
         "compare": ">="
     },
     "cts__timing__hold__ws": {
@@ -48,11 +48,11 @@
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -0.122,
+        "value": -0.111,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {
-        "value": -0.61,
+        "value": -1.07,
         "compare": ">="
     },
     "globalroute__timing__hold__ws": {
@@ -64,7 +64,7 @@
         "compare": ">="
     },
     "detailedroute__route__wirelength": {
-        "value": 307535,
+        "value": 294417,
         "compare": "<="
     },
     "detailedroute__route__drc_errors": {
@@ -79,28 +79,12 @@
         "value": 100,
         "compare": "<="
     },
-    "detailedroute__timing__setup__ws": {
-        "value": -0.11,
-        "compare": ">="
-    },
-    "detailedroute__timing__setup__tns": {
-        "value": -0.44,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__ws": {
-        "value": -0.11,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__tns": {
-        "value": -0.44,
-        "compare": ">="
-    },
     "finish__timing__setup__ws": {
-        "value": -0.133,
+        "value": -0.11,
         "compare": ">="
     },
     "finish__timing__setup__tns": {
-        "value": -1.46,
+        "value": -0.44,
         "compare": ">="
     },
     "finish__timing__hold__ws": {
@@ -112,7 +96,7 @@
         "compare": ">="
     },
     "finish__design__instance__area": {
-        "value": 33700,
+        "value": 33440,
         "compare": "<="
     }
 }

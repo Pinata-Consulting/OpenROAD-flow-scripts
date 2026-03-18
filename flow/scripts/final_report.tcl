@@ -2,13 +2,14 @@ utl::set_metrics_stage "finish__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
 erase_non_stage_variables final
 load_design 6_1_fill.odb 6_1_fill.sdc
+source_step_tcl PRE FINAL_REPORT
 
 set_propagated_clock [all_clocks]
 
 # Ensure all OR created (rsz/cts) instances are connected
 global_connect
 
-write_db $::env(RESULTS_DIR)/6_final.odb
+orfs_write_db $::env(RESULTS_DIR)/6_final.odb
 
 # Delete routing obstructions for final DEF
 source $::env(SCRIPTS_DIR)/deleteRoutingObstructions.tcl
@@ -21,7 +22,7 @@ write_verilog $::env(RESULTS_DIR)/6_final.v \
 # Run extraction and STA
 if {
   [env_var_exists_and_non_empty RCX_RULES]
-  && [env_var_equals SKIP_DETAILED_ROUTE 0]
+  && !$::env(SKIP_DETAILED_ROUTE)
 } {
   # RCX section
   define_process_corner -ext_model_index 0 X
@@ -62,6 +63,8 @@ if {
 report_cell_usage
 
 report_metrics 6 "finish"
+
+source_step_tcl POST FINAL_REPORT
 
 # Save a final image if openroad is compiled with the gui
 if { [ord::openroad_gui_compiled] } {

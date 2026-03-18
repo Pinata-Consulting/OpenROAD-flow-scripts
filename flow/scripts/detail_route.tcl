@@ -1,13 +1,14 @@
 utl::set_metrics_stage "detailedroute__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
 load_design 5_1_grt.odb 5_1_grt.sdc
+source_step_tcl PRE DETAIL_ROUTE
 if { ![grt::have_routes] } {
   error "Global routing failed, run `make gui_grt` and load $::global_route_congestion_report \
         in DRC viewer to view congestion"
 }
 
-if { [env_var_equals SKIP_DETAILED_ROUTE 1] } {
-  write_db $::env(RESULTS_DIR)/5_2_route.odb
+if { $::env(SKIP_DETAILED_ROUTE) } {
+  orfs_write_db $::env(RESULTS_DIR)/5_2_route.odb
   exit
 }
 
@@ -53,7 +54,7 @@ set all_args [concat [list \
 log_cmd detailed_route {*}$all_args
 
 if {
-  ![env_var_equals SKIP_ANTENNA_REPAIR_POST_DRT 1] &&
+  !$::env(SKIP_ANTENNA_REPAIR_POST_DRT) &&
   [env_var_exists_and_non_empty MAX_REPAIR_ANTENNAS_ITER_DRT]
 } {
   set repair_antennas_iters 1
@@ -69,7 +70,7 @@ if {
   utl::metric_int "antenna_diodes_count" -1
 }
 
-source_env_var_if_exists POST_DETAIL_ROUTE_TCL
+source_step_tcl POST DETAIL_ROUTE
 
 check_antennas -report_file $env(REPORTS_DIR)/drt_antennas.log
 
@@ -77,6 +78,9 @@ if { ![design_is_routed] } {
   error "Design has unrouted nets."
 }
 
-report_metrics 5 "detailed route"
+report_design_area
 
-write_db $::env(RESULTS_DIR)/5_2_route.odb
+# Don't report metrics as we have not extracted parasitics, which will happen
+# in final so there is no need to repeat it here.
+
+orfs_write_db $::env(RESULTS_DIR)/5_2_route.odb

@@ -1,6 +1,6 @@
 {
     "synth__design__instance__area__stdcell": {
-        "value": 3732.67,
+        "value": 3710.0,
         "compare": "<="
     },
     "constraints__clocks__count": {
@@ -8,11 +8,11 @@
         "compare": "=="
     },
     "placeopt__design__instance__area": {
-        "value": 4194,
+        "value": 4159,
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
-        "value": 16310,
+        "value": 15634,
         "compare": "<="
     },
     "detailedplace__design__violations": {
@@ -20,11 +20,11 @@
         "compare": "=="
     },
     "cts__design__instance__count__setup_buffer": {
-        "value": 1418,
+        "value": 1360,
         "compare": "<="
     },
     "cts__design__instance__count__hold_buffer": {
-        "value": 1418,
+        "value": 1360,
         "compare": "<="
     },
     "cts__timing__setup__ws": {
@@ -79,22 +79,6 @@
         "value": 100,
         "compare": "<="
     },
-    "detailedroute__timing__setup__ws": {
-        "value": -21.0,
-        "compare": ">="
-    },
-    "detailedroute__timing__setup__tns": {
-        "value": -84.0,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__ws": {
-        "value": -21.0,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__tns": {
-        "value": -84.0,
-        "compare": ">="
-    },
     "finish__timing__setup__ws": {
         "value": -21.0,
         "compare": ">="
@@ -112,7 +96,7 @@
         "compare": ">="
     },
     "finish__design__instance__area": {
-        "value": 4273,
+        "value": 4236,
         "compare": "<="
     }
 }
