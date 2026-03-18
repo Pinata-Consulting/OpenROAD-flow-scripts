@@ -1,9 +1,9 @@
 proc write_lec_verilog { filename } {
+  set remove_cells [find_physical_only_masters]
   if { [env_var_exists_and_non_empty REMOVE_CELLS_FOR_LEC] } {
-    write_verilog -remove_cells $::env(REMOVE_CELLS_FOR_LEC) $::env(RESULTS_DIR)/$filename
-  } else {
-    write_verilog $::env(RESULTS_DIR)/$filename
+    lappend remove_cells {*}$::env(REMOVE_CELLS_FOR_LEC)
   }
+  write_verilog -remove_cells $remove_cells $::env(RESULTS_DIR)/$filename
 }
 
 proc write_lec_script { step file1 file2 } {
@@ -25,7 +25,7 @@ proc run_lec_test { step file1 file2 } {
   # tclint-disable-next-line command-args
   eval exec $::env(KEPLER_FORMAL_EXE) --config $::env(OBJECTS_DIR)/${step}_lec_test.yml
   try {
-    set count [exec grep -c "Found difference" $::env(LOG_DIR)/${step}_lec_check.log]]
+    set count [exec grep -c "Found difference" $::env(LOG_DIR)/${step}_lec_check.log]
   } trap CHILDSTATUS {results options} {
     # This block executes if grep returns a non-zero exit code
     set count 0

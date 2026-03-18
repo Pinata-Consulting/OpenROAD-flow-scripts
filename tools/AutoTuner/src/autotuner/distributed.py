@@ -147,7 +147,12 @@ class AutoTunerBase(tune.Trainable):
 
         # if not a valid config, then don't run and pass back an error
         if not self.is_valid_config:
-            return {METRIC: ERROR_METRIC, "effective_clk_period": "-", "num_drc": "-"}
+            return {
+                METRIC: ERROR_METRIC,
+                "effective_clk_period": ERROR_METRIC,
+                "num_drc": ERROR_METRIC,
+                "die_area": ERROR_METRIC,
+            }
         self._variant = f"{self.variant}-{self.step_}"
         metrics_file = openroad(
             args=args,
@@ -242,7 +247,7 @@ class PPAImprov(AutoTunerBase):
         error = "ERR" in metrics.values() or "ERR" in reference.values()
         not_found = "N/A" in metrics.values() or "N/A" in reference.values()
         if error or not_found:
-            return (ERROR_METRIC, "-", "-", "-")
+            return (ERROR_METRIC, ERROR_METRIC, ERROR_METRIC, ERROR_METRIC)
         ppa = self.get_ppa(metrics)
         gamma = ppa / 10
         score = ppa * (self.step_ / 100) ** (-1) + (gamma * metrics["num_drc"])

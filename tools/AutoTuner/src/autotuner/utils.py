@@ -78,7 +78,7 @@ def calculate_score(metrics, step=1):
     not_found = "N/A" in metrics.values()
 
     if error or not_found:
-        return (ERROR_METRIC, "-", "-", "-")
+        return (ERROR_METRIC, ERROR_METRIC, ERROR_METRIC, ERROR_METRIC)
 
     effective_clk_period = metrics["clk_period"] - metrics["worst_slack"]
     num_drc = metrics["num_drc"]

@@ -32,9 +32,9 @@ class TestParams(ParamTestBase):
             return 43
         return 45
 
-    def test_pdk_0p3_default(self):
+    def test_pdk_0p3s_default(self):
         """
-        Tests PDK 0.3 utilization
+        Tests PDK 0.3s utilization
         """
 
         pdk_version = ""
@@ -100,12 +100,12 @@ class TestParams(ParamTestBase):
                     front_end=front_end,
                 )
 
-    def test_pdk_0p3(self):
+    def test_pdk_0p3s(self):
         """
-        Tests PDK 0.3 utilization
+        Tests PDK 0.3s utilization
         """
 
-        pdk_version = "0.3"
+        pdk_version = "0.3s"
         for front_end in self._front_end_list:
             for place_site in self._synopsys_site_list:
                 exp_util = self.get_exp_util(place_site, pdk_version)

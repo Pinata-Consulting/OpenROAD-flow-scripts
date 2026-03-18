@@ -28,7 +28,7 @@ export SYNTH_HIERARCHICAL    ?= 0
 
 # Use $(if) to defer conditional eval until all makefiles are read
 export CORE_UTILIZATION = $(strip \
-    $(if $(filter 0.3,$(RAPIDUS_PDK_VERSION)), \
+    $(if $(filter 0.3s,$(RAPIDUS_PDK_VERSION)), \
         $(if $(filter ra02h138_DST_45CPP,$(PLACE_SITE)), \
             $(if $(filter slang,$(SYNTH_HDL_FRONTEND)), \
                 $(if $(filter 14LM,$(LAYER_STACK_OPTION)), \

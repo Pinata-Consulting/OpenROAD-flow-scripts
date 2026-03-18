@@ -20,13 +20,15 @@ set_voltage_domain -name {CORE} -power {VDD} -ground {VSS}
 define_pdn_grid -name {grid} -voltage_domains {CORE} -pins {TopMetal1 TopMetal2}
 add_pdn_stripe -grid {grid} -layer {Metal1} -width {0.44} -pitch {7.56} -offset {0} \
   -followpins -extend_to_core_ring
-add_pdn_ring -grid {grid} -layers {TopMetal1 TopMetal2} -widths {8.0} -spacings {5.0} \
+add_pdn_ring -grid {grid} -layers {Metal5 TopMetal1} -widths {8.0} -spacings {5.0} \
   -core_offsets {4.5} -connect_to_pads
-add_pdn_stripe -grid {grid} -layer {TopMetal1} -width {2.200} -pitch {75.6} -offset {13.6} \
+add_pdn_stripe -grid {grid} -layer {TopMetal1} -width {4.0} -pitch {60.0} -offset {10.0} \
   -extend_to_core_ring
-add_pdn_stripe -grid {grid} -layer {TopMetal2} -width {2.200} -pitch {75.6} -offset {13.6} \
+add_pdn_stripe -grid {grid} -layer {TopMetal2} -width {4.0} -pitch {60.0} -offset {10.0} \
   -extend_to_core_ring
 add_pdn_connect -grid {grid} -layers {Metal1 TopMetal1}
+add_pdn_connect -grid {grid} -layers {Metal5 TopMetal1}
+add_pdn_connect -grid {grid} -layers {Metal5 TopMetal2}
 add_pdn_connect -grid {grid} -layers {TopMetal1 TopMetal2}
 
 define_pdn_grid \

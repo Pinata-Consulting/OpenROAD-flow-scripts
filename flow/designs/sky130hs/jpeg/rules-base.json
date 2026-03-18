@@ -44,11 +44,11 @@
         "compare": ">="
     },
     "globalroute__antenna_diodes_count": {
-        "value": 206,
+        "value": 200,
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -0.208,
+        "value": -0.205,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {

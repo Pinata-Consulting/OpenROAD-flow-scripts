@@ -24,7 +24,7 @@ class TestParams(ParamTestBase):
     def get_exp_util(self, place_site, pdk_version):
         """Returns the expected utilization"""
 
-        if pdk_version in ["", "0.3"]:
+        if pdk_version in ["", "0.3s"]:
             if place_site == "ra02h138_DST_45CPP":
                 return 60
             return 65
@@ -47,9 +47,9 @@ class TestParams(ParamTestBase):
             )
         if pdk_version == "0.15":
             return os.path.join(self._design_full_dir, f"constraint_{pdk_version}.sdc")
-        if pdk_version in ["", "0.3"]:
+        if pdk_version in ["", "0.3s"]:
             if pdk_version == "":
-                pdk_version = "0.3"
+                pdk_version = "0.3s"
             if place_site == "ra02h138_DST_45CPP":
                 return os.path.join(
                     self._design_full_dir, f"constraint_{pdk_version}_6T.sdc"
@@ -60,9 +60,9 @@ class TestParams(ParamTestBase):
 
         return os.path.join(self._design_full_dir, "constraint.sdc")
 
-    def test_pdk_0p3_default(self):
+    def test_pdk_0p3s_default(self):
         """
-        Tests PDK 0.3 utilization
+        Tests PDK 0.3s utilization
         """
 
         pdk_version = ""
@@ -160,13 +160,13 @@ class TestParams(ParamTestBase):
                     front_end=front_end,
                 )
 
-    def test_pdk_0p3(self):
+    def test_pdk_0p3s(self):
         """
-        Tests PDK 0.3 utilization
+        Tests PDK 0.3s utilization
         """
 
         front_end = ""
-        pdk_version = "0.3"
+        pdk_version = "0.3s"
         for front_end in self._front_end_list:
             for place_site in self._synopsys_site_list:
                 exp_util = self.get_exp_util(place_site, pdk_version)

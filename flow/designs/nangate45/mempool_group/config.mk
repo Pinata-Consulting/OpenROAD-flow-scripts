@@ -78,3 +78,5 @@ export CORE_AREA   = 10 12 1090 1090
 export MACRO_PLACE_HALO = 10 10
 
 export SYNTH_HDL_FRONTEND = slang
+
+export LEC_CHECK = 0

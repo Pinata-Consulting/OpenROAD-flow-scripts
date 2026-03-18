@@ -15,7 +15,7 @@ export SDC_FILE      = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.
 # Adders degrade ibex setup repair
 export ADDER_MAP_FILE :=
 
-export CORE_UTILIZATION = 45
+export CORE_UTILIZATION = 50
 export PLACE_DENSITY_LB_ADDON = 0.25
 export TNS_END_PERCENT = 100
 

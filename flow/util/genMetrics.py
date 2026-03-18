@@ -315,6 +315,7 @@ def extract_metrics(
 
     failed = False
     total = timedelta()
+    elapsed_seconds = {}
     for key in metrics_dict:
         if key.endswith("__runtime__total"):
             # Big try block because Hour and microsecond is optional
@@ -341,10 +342,17 @@ def extract_metrics(
             )
             total += delta
 
+            stage = key[: -len("__runtime__total")]
+            elapsed_seconds[stage + "__elapsed_seconds"] = delta.total_seconds()
+
     if failed:
         metrics_dict["total_time"] = "ERR"
+        metrics_dict["total_elapsed_seconds"] = "ERR"
     else:
         metrics_dict["total_time"] = str(total)
+        metrics_dict["total_elapsed_seconds"] = total.total_seconds()
+
+    metrics_dict.update(elapsed_seconds)
 
     metrics_dict = {
         key.replace(":", "__"): value for key, value in metrics_dict.items()
