@@ -32,6 +32,10 @@ proc report_unused_masters { } {
 
 report_unused_masters
 
+# Eliminate dead logic
+eliminate_dead_logic
+
+
 #Run check_setup
 puts "\n=========================================================================="
 puts "Floorplan check_setup"

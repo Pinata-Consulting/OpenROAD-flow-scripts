@@ -52,12 +52,12 @@ ROUTING_LAYER_ADJUSTMENT:
     a too low value, such as 0.10, and bisect
     to value that works by doing multiple global routing runs.
     As a last resort, `make global_route_issue` and using
-    the tools/OpenROAD/etc/deltaDebug.py can be useful to debug
+    the tools/OpenROAD/etc/whittle.py can be useful to debug
     global routing errors. If there is something specific that is
     impossible to route, such as a clock line over a macro, global
     routing will terminate with DRC errors routes that could
     have been routed were it not for the specific impossible routes.
-    deltaDebug.py should weed out the possible routes and leave
+    whittle.py should weed out the possible routes and leave
     a minimal failing case that pinpoints the problem.
   stages:
     - floorplan
