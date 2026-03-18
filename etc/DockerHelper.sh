@@ -73,7 +73,10 @@ _setup() {
             fromImage="${FROM_IMAGE_OVERRIDE:-$osBaseImage}"
             cp tools/OpenROAD/etc/DependencyInstaller.sh etc/InstallerOpenROAD.sh
             context="etc"
-            buildArgs="--build-arg options=${options} ${noConstantBuildDir}"
+            local yosys_ver
+            yosys_ver=v$(grep 'yosys_ver =' tools/yosys/docs/source/conf.py | awk -F'"' '{print $2}')
+            options+=" -yosys-ver=${yosys_ver}"
+            buildArgs="--build-arg \"options=${options}\" ${noConstantBuildDir}"
             ;;
         *)
             echo "Target ${target} not found" >&2
@@ -87,20 +90,20 @@ _setup() {
 
 _create() {
     echo "Create docker image ${imagePath} using ${file}"
-    ${DOCKER_CMD} buildx build \
+    eval ${DOCKER_CMD} buildx build \
         --file "${file}" \
         --tag "${imagePath}" \
-        ${buildArgs} \
+        "${buildArgs}" \
         "${context}"
     rm -f etc/InstallerOpenROAD.sh
 }
 
 _push() {
-    if [[ -z ${username+x} ]]; then
+    if [[ -z ${username+x} ]] && [[ ${dryRun} != 1 ]]; then
         echo "Missing required -username=<USER> argument"
         _help
     fi
-    if [[ -z ${password+x} ]]; then
+    if [[ -z ${password+x} ]] && [[ ${dryRun} != 1 ]]; then
         echo "Missing required -password=<PASS> argument"
         _help
     fi
