@@ -241513,7 +241513,8 @@ module bsg_mem_1rw_sync_width_p48_els_p256
     .wd_in(data_i),
     .rd_out(data_o),
     .ce_in(_0_net_),
-    .we_in(_1_net_)
+    .we_in(_1_net_),
+    .w_mask_in(48'b0)
   );
 
   assign _1_net_ = ~w_i;
@@ -403262,78 +403263,6 @@ module bsg_chip
   p_co2_6_o,
   p_co2_7_o,
   p_co2_8_o,
-  p_ddr_ck_p_o,
-  p_ddr_ck_n_o,
-  p_ddr_cke_o,
-  p_ddr_cs_n_o,
-  p_ddr_ras_n_o,
-  p_ddr_cas_n_o,
-  p_ddr_we_n_o,
-  p_ddr_reset_n_o,
-  p_ddr_odt_o,
-  p_ddr_ba_0_o,
-  p_ddr_ba_1_o,
-  p_ddr_ba_2_o,
-  p_ddr_addr_0_o,
-  p_ddr_addr_1_o,
-  p_ddr_addr_2_o,
-  p_ddr_addr_3_o,
-  p_ddr_addr_4_o,
-  p_ddr_addr_5_o,
-  p_ddr_addr_6_o,
-  p_ddr_addr_7_o,
-  p_ddr_addr_8_o,
-  p_ddr_addr_9_o,
-  p_ddr_addr_10_o,
-  p_ddr_addr_11_o,
-  p_ddr_addr_12_o,
-  p_ddr_addr_13_o,
-  p_ddr_addr_14_o,
-  p_ddr_addr_15_o,
-  p_ddr_dm_0_o,
-  p_ddr_dm_1_o,
-  p_ddr_dm_2_o,
-  p_ddr_dm_3_o,
-  p_ddr_dqs_p_0_io,
-  p_ddr_dqs_n_0_io,
-  p_ddr_dqs_p_1_io,
-  p_ddr_dqs_n_1_io,
-  p_ddr_dqs_p_2_io,
-  p_ddr_dqs_n_2_io,
-  p_ddr_dqs_p_3_io,
-  p_ddr_dqs_n_3_io,
-  p_ddr_dq_0_io,
-  p_ddr_dq_1_io,
-  p_ddr_dq_2_io,
-  p_ddr_dq_3_io,
-  p_ddr_dq_4_io,
-  p_ddr_dq_5_io,
-  p_ddr_dq_6_io,
-  p_ddr_dq_7_io,
-  p_ddr_dq_8_io,
-  p_ddr_dq_9_io,
-  p_ddr_dq_10_io,
-  p_ddr_dq_11_io,
-  p_ddr_dq_12_io,
-  p_ddr_dq_13_io,
-  p_ddr_dq_14_io,
-  p_ddr_dq_15_io,
-  p_ddr_dq_16_io,
-  p_ddr_dq_17_io,
-  p_ddr_dq_18_io,
-  p_ddr_dq_19_io,
-  p_ddr_dq_20_io,
-  p_ddr_dq_21_io,
-  p_ddr_dq_22_io,
-  p_ddr_dq_23_io,
-  p_ddr_dq_24_io,
-  p_ddr_dq_25_io,
-  p_ddr_dq_26_io,
-  p_ddr_dq_27_io,
-  p_ddr_dq_28_io,
-  p_ddr_dq_29_io,
-  p_ddr_dq_30_io,
-  p_ddr_dq_31_io,
   p_bsg_tag_clk_i,
   p_bsg_tag_en_i,
   p_bsg_tag_data_i,
@@ -403410,38 +403339,6 @@ module bsg_chip
   output p_co2_6_o;
   output p_co2_7_o;
   output p_co2_8_o;
-  output p_ddr_ck_p_o;
-  output p_ddr_ck_n_o;
-  output p_ddr_cke_o;
-  output p_ddr_cs_n_o;
-  output p_ddr_ras_n_o;
-  output p_ddr_cas_n_o;
-  output p_ddr_we_n_o;
-  output p_ddr_reset_n_o;
-  output p_ddr_odt_o;
-  output p_ddr_ba_0_o;
-  output p_ddr_ba_1_o;
-  output p_ddr_ba_2_o;
-  output p_ddr_addr_0_o;
-  output p_ddr_addr_1_o;
-  output p_ddr_addr_2_o;
-  output p_ddr_addr_3_o;
-  output p_ddr_addr_4_o;
-  output p_ddr_addr_5_o;
-  output p_ddr_addr_6_o;
-  output p_ddr_addr_7_o;
-  output p_ddr_addr_8_o;
-  output p_ddr_addr_9_o;
-  output p_ddr_addr_10_o;
-  output p_ddr_addr_11_o;
-  output p_ddr_addr_12_o;
-  output p_ddr_addr_13_o;
-  output p_ddr_addr_14_o;
-  output p_ddr_addr_15_o;
-  output p_ddr_dm_0_o;
-  output p_ddr_dm_1_o;
-  output p_ddr_dm_2_o;
-  output p_ddr_dm_3_o;
   output p_bsg_tag_clk_o;
   output p_bsg_tag_data_o;
   output p_clk_o;
@@ -403449,26 +403346,14 @@ module bsg_chip
   wire p_ci_tkn_o,p_co_tkn_o,p_ci2_clk_o,p_ci2_v_o,p_ci2_0_o,p_ci2_1_o,p_ci2_2_o,
   p_ci2_3_o,p_ci2_4_o,p_ci2_5_o,p_ci2_6_o,p_ci2_7_o,p_ci2_8_o,p_co2_clk_o,p_co2_v_o,
   p_co2_0_o,p_co2_1_o,p_co2_2_o,p_co2_3_o,p_co2_4_o,p_co2_5_o,p_co2_6_o,p_co2_7_o,
-  p_co2_8_o,p_ddr_ck_p_o,p_ddr_ck_n_o,p_ddr_cke_o,p_ddr_cs_n_o,p_ddr_ras_n_o,
-  p_ddr_cas_n_o,p_ddr_we_n_o,p_ddr_reset_n_o,p_ddr_odt_o,p_ddr_ba_0_o,p_ddr_ba_1_o,
-  p_ddr_ba_2_o,p_ddr_addr_0_o,p_ddr_addr_1_o,p_ddr_addr_2_o,p_ddr_addr_3_o,p_ddr_addr_4_o,
-  p_ddr_addr_5_o,p_ddr_addr_6_o,p_ddr_addr_7_o,p_ddr_addr_8_o,p_ddr_addr_9_o,
-  p_ddr_addr_10_o,p_ddr_addr_11_o,p_ddr_addr_12_o,p_ddr_addr_13_o,p_ddr_addr_14_o,
-  p_ddr_addr_15_o,p_ddr_dm_0_o,p_ddr_dm_1_o,p_ddr_dm_2_o,p_ddr_dm_3_o,p_bsg_tag_clk_o,
-  p_bsg_tag_data_o,p_clk_o,p_misc_o,N0,N1,ddr_dq_8_o_int,ddr_dq_8_i_int,
+  p_co2_8_o,p_bsg_tag_clk_o,p_bsg_tag_data_o,p_clk_o,p_misc_o,N0,N1,
   pwrok_lo_19,pwrok_lo_18,pwrok_lo_17,pwrok_lo_16,pwrok_lo_14,pwrok_lo_13,pwrok_lo_12,
   pwrok_lo_11,pwrok_lo_3,pwrok_lo_2,pwrok_lo_1,pwrok_lo_0,iopwrok_lo_19,iopwrok_lo_18,
   iopwrok_lo_17,iopwrok_lo_16,iopwrok_lo_14,iopwrok_lo_13,iopwrok_lo_12,
   iopwrok_lo_11,iopwrok_lo_3,iopwrok_lo_2,iopwrok_lo_1,iopwrok_lo_0,retc_lo_19,retc_lo_18,
   retc_lo_17,retc_lo_16,retc_lo_14,retc_lo_13,retc_lo_12,retc_lo_11,retc_lo_3,
-  retc_lo_2,retc_lo_1,retc_lo_0,ddr_dq_9_o_int,ddr_dq_9_i_int,ddr_dq_10_o_int,
-  ddr_dq_10_i_int,ddr_dq_11_o_int,ddr_dq_11_i_int,ddr_dq_12_o_int,ddr_dq_12_i_int,
-  ddr_dq_13_o_int,ddr_dq_13_i_int,ddr_dq_14_o_int,ddr_dq_14_i_int,ddr_dq_15_o_int,
-  ddr_dq_15_i_int,ddr_dqs_p_0_o_int,ddr_dqs_p_0_i_int,ddr_dqs_n_0_o_int,ddr_dqs_n_0_i_int,
-  ddr_dm_0_o_int,ddr_dq_0_o_int,ddr_dq_0_i_int,ddr_dq_1_o_int,ddr_dq_1_i_int,
-  ddr_dq_2_o_int,ddr_dq_2_i_int,ddr_dq_3_o_int,ddr_dq_3_i_int,ddr_dq_4_o_int,ddr_dq_4_i_int,
-  ddr_dq_5_o_int,ddr_dq_5_i_int,ddr_dq_6_o_int,ddr_dq_6_i_int,ddr_dq_7_o_int,
-  ddr_dq_7_i_int,bsg_tag_data_o_int,bsg_tag_clk_o_int,co2_0_o_int,co2_1_o_int,
+  retc_lo_2,retc_lo_1,retc_lo_0,
+  bsg_tag_data_o_int,bsg_tag_clk_o_int,co2_0_o_int,co2_1_o_int,
   co2_2_o_int,co2_3_o_int,co2_4_o_int,co2_clk_o_int,co2_tkn_i_int,co2_v_o_int,co2_5_o_int,
   co2_6_o_int,co2_7_o_int,co2_8_o_int,co_0_i_int,co_1_i_int,co_2_i_int,co_3_i_int,
   co_4_i_int,co_clk_i_int,co_tkn_o_int,co_v_i_int,co_5_i_int,co_6_i_int,co_7_i_int,
@@ -403477,23 +403362,8 @@ module bsg_chip
   ci2_2_o_int,ci2_3_o_int,ci2_4_o_int,ci2_clk_o_int,ci2_v_o_int,ci2_tkn_i_int,ci2_5_o_int,
   ci2_6_o_int,ci2_7_o_int,ci2_8_o_int,ci_0_i_int,ci_1_i_int,ci_2_i_int,ci_3_i_int,
   ci_4_i_int,ci_clk_i_int,ci_tkn_o_int,ci_v_i_int,ci_5_i_int,ci_6_i_int,ci_7_i_int,
-  ci_8_i_int,bsg_tag_en_i_int,bsg_tag_data_i_int,bsg_tag_clk_i_int,ddr_dm_3_o_int,
-  ddr_dqs_p_3_o_int,ddr_dqs_p_3_i_int,ddr_dqs_n_3_o_int,ddr_dqs_n_3_i_int,
-  ddr_dq_24_o_int,ddr_dq_24_i_int,ddr_dq_25_o_int,ddr_dq_25_i_int,ddr_dq_26_o_int,
-  ddr_dq_26_i_int,ddr_dq_27_o_int,ddr_dq_27_i_int,ddr_dq_28_o_int,ddr_dq_28_i_int,
-  ddr_dq_29_o_int,ddr_dq_29_i_int,ddr_dq_30_o_int,ddr_dq_30_i_int,ddr_dq_31_o_int,
-  ddr_dq_31_i_int,ddr_dq_16_o_int,ddr_dq_16_i_int,ddr_dq_17_o_int,ddr_dq_17_i_int,
-  ddr_dq_18_o_int,ddr_dq_18_i_int,ddr_dq_19_o_int,ddr_dq_19_i_int,ddr_dq_20_o_int,
-  ddr_dq_20_i_int,ddr_dq_21_o_int,ddr_dq_21_i_int,ddr_dq_22_o_int,ddr_dq_22_i_int,
-  ddr_dq_23_o_int,ddr_dq_23_i_int,ddr_dm_2_o_int,ddr_dqs_p_2_o_int,ddr_dqs_p_2_i_int,
-  ddr_dqs_n_2_o_int,ddr_dqs_n_2_i_int,ddr_ck_p_o_int,ddr_ck_n_o_int,ddr_cke_o_int,
-  ddr_cs_n_o_int,ddr_ras_n_o_int,ddr_cas_n_o_int,ddr_we_n_o_int,ddr_reset_n_o_int,
-  ddr_odt_o_int,ddr_addr_0_o_int,ddr_addr_1_o_int,ddr_addr_2_o_int,ddr_addr_3_o_int,
-  ddr_addr_4_o_int,ddr_addr_5_o_int,ddr_addr_6_o_int,ddr_addr_7_o_int,ddr_addr_8_o_int,
-  ddr_addr_9_o_int,ddr_addr_10_o_int,ddr_addr_11_o_int,ddr_addr_12_o_int,
-  ddr_addr_13_o_int,ddr_addr_14_o_int,ddr_addr_15_o_int,ddr_ba_0_o_int,ddr_ba_1_o_int,
-  ddr_ba_2_o_int,ddr_dqs_p_1_o_int,ddr_dqs_p_1_i_int,ddr_dqs_n_1_o_int,
-  ddr_dqs_n_1_i_int,ddr_dm_1_o_int,prev_link_io_tag_lines_lo_clk_,prev_link_io_tag_lines_lo_op_,
+  ci_8_i_int,bsg_tag_en_i_int,bsg_tag_data_i_int,bsg_tag_clk_i_int,
+  prev_link_io_tag_lines_lo_clk_,prev_link_io_tag_lines_lo_op_,
   prev_link_io_tag_lines_lo_param_,prev_link_io_tag_lines_lo_en_,
   prev_link_core_tag_lines_lo_clk_,prev_link_core_tag_lines_lo_op_,
   prev_link_core_tag_lines_lo_param_,prev_link_core_tag_lines_lo_en_,prev_ct_core_tag_lines_lo_clk_,
@@ -403704,46 +403574,6 @@ module bsg_chip
   wire [63:0] dram_cmd_link_lo,dram_resp_link_li,bp_next_resp_link_li,bp_prev_resp_link_li,
   bp_next_cmd_link_li,bp_prev_cmd_link_li;
   wire [571:0] dram_cmd_li,dram_resp_lo;
-  inout p_ddr_dqs_p_0_io;
-  inout p_ddr_dqs_n_0_io;
-  inout p_ddr_dqs_p_1_io;
-  inout p_ddr_dqs_n_1_io;
-  inout p_ddr_dqs_p_2_io;
-  inout p_ddr_dqs_n_2_io;
-  inout p_ddr_dqs_p_3_io;
-  inout p_ddr_dqs_n_3_io;
-  inout p_ddr_dq_0_io;
-  inout p_ddr_dq_1_io;
-  inout p_ddr_dq_2_io;
-  inout p_ddr_dq_3_io;
-  inout p_ddr_dq_4_io;
-  inout p_ddr_dq_5_io;
-  inout p_ddr_dq_6_io;
-  inout p_ddr_dq_7_io;
-  inout p_ddr_dq_8_io;
-  inout p_ddr_dq_9_io;
-  inout p_ddr_dq_10_io;
-  inout p_ddr_dq_11_io;
-  inout p_ddr_dq_12_io;
-  inout p_ddr_dq_13_io;
-  inout p_ddr_dq_14_io;
-  inout p_ddr_dq_15_io;
-  inout p_ddr_dq_16_io;
-  inout p_ddr_dq_17_io;
-  inout p_ddr_dq_18_io;
-  inout p_ddr_dq_19_io;
-  inout p_ddr_dq_20_io;
-  inout p_ddr_dq_21_io;
-  inout p_ddr_dq_22_io;
-  inout p_ddr_dq_23_io;
-  inout p_ddr_dq_24_io;
-  inout p_ddr_dq_25_io;
-  inout p_ddr_dq_26_io;
-  inout p_ddr_dq_27_io;
-  inout p_ddr_dq_28_io;
-  inout p_ddr_dq_29_io;
-  inout p_ddr_dq_30_io;
-  inout p_ddr_dq_31_io;
 
   assign ci_clk_i_int = p_ci_clk_i;
   assign ci_v_i_int = p_ci_v_i;
@@ -403805,124 +403635,10 @@ module bsg_chip
   assign p_co2_6_o = co2_6_o_int;
   assign p_co2_7_o = co2_7_o_int;
   assign p_co2_8_o = co2_8_o_int;
-  assign p_ddr_ck_p_o = ddr_ck_p_o_int;
-  assign p_ddr_ck_n_o = ddr_ck_n_o_int;
-  assign p_ddr_cke_o = ddr_cke_o_int;
-  assign p_ddr_cs_n_o = ddr_cs_n_o_int;
-  assign p_ddr_ras_n_o = ddr_ras_n_o_int;
-  assign p_ddr_cas_n_o = ddr_cas_n_o_int;
-  assign p_ddr_we_n_o = ddr_we_n_o_int;
-  assign p_ddr_reset_n_o = ddr_reset_n_o_int;
-  assign p_ddr_odt_o = ddr_odt_o_int;
-  assign p_ddr_ba_0_o = ddr_ba_0_o_int;
-  assign p_ddr_ba_1_o = ddr_ba_1_o_int;
-  assign p_ddr_ba_2_o = ddr_ba_2_o_int;
-  assign p_ddr_addr_0_o = ddr_addr_0_o_int;
-  assign p_ddr_addr_1_o = ddr_addr_1_o_int;
-  assign p_ddr_addr_2_o = ddr_addr_2_o_int;
-  assign p_ddr_addr_3_o = ddr_addr_3_o_int;
-  assign p_ddr_addr_4_o = ddr_addr_4_o_int;
-  assign p_ddr_addr_5_o = ddr_addr_5_o_int;
-  assign p_ddr_addr_6_o = ddr_addr_6_o_int;
-  assign p_ddr_addr_7_o = ddr_addr_7_o_int;
-  assign p_ddr_addr_8_o = ddr_addr_8_o_int;
-  assign p_ddr_addr_9_o = ddr_addr_9_o_int;
-  assign p_ddr_addr_10_o = ddr_addr_10_o_int;
-  assign p_ddr_addr_11_o = ddr_addr_11_o_int;
-  assign p_ddr_addr_12_o = ddr_addr_12_o_int;
-  assign p_ddr_addr_13_o = ddr_addr_13_o_int;
-  assign p_ddr_addr_14_o = ddr_addr_14_o_int;
-  assign p_ddr_addr_15_o = ddr_addr_15_o_int;
-  assign p_ddr_dm_0_o = ddr_dm_0_o_int;
-  assign p_ddr_dm_1_o = ddr_dm_1_o_int;
-  assign p_ddr_dm_2_o = ddr_dm_2_o_int;
-  assign p_ddr_dm_3_o = ddr_dm_3_o_int;
   assign p_bsg_tag_clk_o = bsg_tag_clk_o_int;
   assign p_bsg_tag_data_o = bsg_tag_data_o_int;
   assign p_clk_o = clk_o_int;
   assign p_misc_o = misc_o_int;
-
-  assign ddr_dqs_p_0_i_int = p_ddr_dqs_p_0_io;
-  assign ddr_dqs_n_0_i_int = p_ddr_dqs_n_0_io;
-  assign ddr_dqs_p_1_i_int = p_ddr_dqs_p_1_io;
-  assign ddr_dqs_n_1_i_int = p_ddr_dqs_n_1_io;
-  assign ddr_dqs_p_2_i_int = p_ddr_dqs_p_2_io;
-  assign ddr_dqs_n_2_i_int = p_ddr_dqs_n_2_io;
-  assign ddr_dqs_p_3_i_int = p_ddr_dqs_p_3_io;
-  assign ddr_dqs_n_3_i_int = p_ddr_dqs_n_3_io;
-  assign ddr_dq_0_i_int = p_ddr_dq_0_io;
-  assign ddr_dq_1_i_int = p_ddr_dq_1_io;
-  assign ddr_dq_2_i_int = p_ddr_dq_2_io;
-  assign ddr_dq_3_i_int = p_ddr_dq_3_io;
-  assign ddr_dq_4_i_int = p_ddr_dq_4_io;
-  assign ddr_dq_5_i_int = p_ddr_dq_5_io;
-  assign ddr_dq_6_i_int = p_ddr_dq_6_io;
-  assign ddr_dq_7_i_int = p_ddr_dq_7_io;
-  assign ddr_dq_8_i_int = p_ddr_dq_8_io;
-  assign ddr_dq_9_i_int = p_ddr_dq_9_io;
-  assign ddr_dq_10_i_int = p_ddr_dq_10_io;
-  assign ddr_dq_11_i_int = p_ddr_dq_11_io;
-  assign ddr_dq_12_i_int = p_ddr_dq_12_io;
-  assign ddr_dq_13_i_int = p_ddr_dq_13_io;
-  assign ddr_dq_14_i_int = p_ddr_dq_14_io;
-  assign ddr_dq_15_i_int = p_ddr_dq_15_io;
-  assign ddr_dq_16_i_int = p_ddr_dq_16_io;
-  assign ddr_dq_17_i_int = p_ddr_dq_17_io;
-  assign ddr_dq_18_i_int = p_ddr_dq_18_io;
-  assign ddr_dq_19_i_int = p_ddr_dq_19_io;
-  assign ddr_dq_20_i_int = p_ddr_dq_20_io;
-  assign ddr_dq_21_i_int = p_ddr_dq_21_io;
-  assign ddr_dq_22_i_int = p_ddr_dq_22_io;
-  assign ddr_dq_23_i_int = p_ddr_dq_23_io;
-  assign ddr_dq_24_i_int = p_ddr_dq_24_io;
-  assign ddr_dq_25_i_int = p_ddr_dq_25_io;
-  assign ddr_dq_26_i_int = p_ddr_dq_26_io;
-  assign ddr_dq_27_i_int = p_ddr_dq_27_io;
-  assign ddr_dq_28_i_int = p_ddr_dq_28_io;
-  assign ddr_dq_29_i_int = p_ddr_dq_29_io;
-  assign ddr_dq_30_i_int = p_ddr_dq_30_io;
-  assign ddr_dq_31_i_int = p_ddr_dq_31_io;
-
-  assign p_ddr_dqs_p_0_io = ddr_dqs_p_0_o_int;
-  assign p_ddr_dqs_n_0_io = ddr_dqs_n_0_o_int;
-  assign p_ddr_dqs_p_1_io = ddr_dqs_p_1_o_int;
-  assign p_ddr_dqs_n_1_io = ddr_dqs_n_1_o_int;
-  assign p_ddr_dqs_p_2_io = ddr_dqs_p_2_o_int;
-  assign p_ddr_dqs_n_2_io = ddr_dqs_n_2_o_int;
-  assign p_ddr_dqs_p_3_io = ddr_dqs_p_3_o_int;
-  assign p_ddr_dqs_n_3_io = ddr_dqs_n_3_o_int;
-  assign p_ddr_dq_0_io = ddr_dq_0_o_int;
-  assign p_ddr_dq_1_io = ddr_dq_1_o_int;
-  assign p_ddr_dq_2_io = ddr_dq_2_o_int;
-  assign p_ddr_dq_3_io = ddr_dq_3_o_int;
-  assign p_ddr_dq_4_io = ddr_dq_4_o_int;
-  assign p_ddr_dq_5_io = ddr_dq_5_o_int;
-  assign p_ddr_dq_6_io = ddr_dq_6_o_int;
-  assign p_ddr_dq_7_io = ddr_dq_7_o_int;
-  assign p_ddr_dq_8_io = ddr_dq_8_o_int;
-  assign p_ddr_dq_9_io = ddr_dq_9_o_int;
-  assign p_ddr_dq_10_io = ddr_dq_10_o_int;
-  assign p_ddr_dq_11_io = ddr_dq_11_o_int;
-  assign p_ddr_dq_12_io = ddr_dq_12_o_int;
-  assign p_ddr_dq_13_io = ddr_dq_13_o_int;
-  assign p_ddr_dq_14_io = ddr_dq_14_o_int;
-  assign p_ddr_dq_15_io = ddr_dq_15_o_int;
-  assign p_ddr_dq_16_io = ddr_dq_16_o_int;
-  assign p_ddr_dq_17_io = ddr_dq_17_o_int;
-  assign p_ddr_dq_18_io = ddr_dq_18_o_int;
-  assign p_ddr_dq_19_io = ddr_dq_19_o_int;
-  assign p_ddr_dq_20_io = ddr_dq_20_o_int;
-  assign p_ddr_dq_21_io = ddr_dq_21_o_int;
-  assign p_ddr_dq_22_io = ddr_dq_22_o_int;
-  assign p_ddr_dq_23_io = ddr_dq_23_o_int;
-  assign p_ddr_dq_24_io = ddr_dq_24_o_int;
-  assign p_ddr_dq_25_io = ddr_dq_25_o_int;
-  assign p_ddr_dq_26_io = ddr_dq_26_o_int;
-  assign p_ddr_dq_27_io = ddr_dq_27_o_int;
-  assign p_ddr_dq_28_io = ddr_dq_28_o_int;
-  assign p_ddr_dq_29_io = ddr_dq_29_o_int;
-  assign p_ddr_dq_30_io = ddr_dq_30_o_int;
-  assign p_ddr_dq_31_io = ddr_dq_31_o_int;
 
   bsg_tag_master_els_p9_lg_width_p4
   btm

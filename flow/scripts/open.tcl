@@ -16,6 +16,17 @@ if { [env_var_exists_and_non_empty DEF_FILE] } {
   }
   set input_file $::env(DEF_FILE)
   log_cmd read_def $input_file
+} elseif { [env_var_exists_and_non_empty V_FILE] } {
+  log_cmd read_lef $::env(TECH_LEF)
+  log_cmd read_lef $::env(SC_LEF)
+  if { [env_var_exists_and_non_empty ADDITIONAL_LEFS] } {
+    foreach lef $::env(ADDITIONAL_LEFS) {
+      log_cmd read_lef $lef
+    }
+  }
+  set input_file $::env(V_FILE)
+  log_cmd read_verilog $input_file
+  log_cmd link_design {*}[hier_options] $::env(DESIGN_NAME)
 } else {
   set input_file $::env(ODB_FILE)
   log_cmd read_db {*}[hier_options] $input_file
@@ -34,7 +45,11 @@ proc read_timing { input_file } {
     source $::env(PLATFORM_DIR)/derate.tcl
   }
 
-  source $::env(PLATFORM_DIR)/setRC.tcl
+  if { [env_var_exists_and_non_empty LAYER_PARASITICS_FILE] } {
+    log_cmd source $::env(LAYER_PARASITICS_FILE)
+  } else {
+    log_cmd source $::env(PLATFORM_DIR)/setRC.tcl
+  }
   if { $design_stage >= 4 } {
     # CTS has run, so propagate clocks
     set_propagated_clock [all_clocks]
@@ -47,7 +62,6 @@ proc read_timing { input_file } {
       log_cmd estimate_parasitics -global_routing
     } else {
       puts "No global routing results available, skipping estimate_parasitics"
-      puts "Load $::global_route_congestion_report for details"
     }
   } elseif { $design_stage >= 3 } {
     log_cmd estimate_parasitics -placement

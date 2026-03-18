@@ -1,46 +1,6 @@
 {
-    "cts__flow__warnings__count:RSZ-0062": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "detailedroute__flow__warnings__count:GRT-0246": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "finish__flow__warnings__count:GUI-0076": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "floorplan__flow__warnings__count:EST-0027": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "floorplan__flow__warnings__count:RSZ-0062": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "globalplace__flow__warnings__count:GRT-0281": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "globalroute__flow__warnings__count:GRT-0246": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
-    "globalroute__flow__warnings__count:RSZ-0062": {
-        "value": 1,
-        "compare": "<=",
-        "level": "warning"
-    },
     "synth__design__instance__area__stdcell": {
-        "value": 724516.2,
+        "value": 712000.0,
         "compare": "<="
     },
     "constraints__clocks__count": {
@@ -48,11 +8,11 @@
         "compare": "=="
     },
     "placeopt__design__instance__area": {
-        "value": 730176,
+        "value": 726502,
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
-        "value": 112854,
+        "value": 108442,
         "compare": "<="
     },
     "detailedplace__design__violations": {
@@ -60,19 +20,19 @@
         "compare": "=="
     },
     "cts__design__instance__count__setup_buffer": {
-        "value": 9813,
+        "value": 9430,
         "compare": "<="
     },
     "cts__design__instance__count__hold_buffer": {
-        "value": 9813,
+        "value": 9430,
         "compare": "<="
     },
     "cts__timing__setup__ws": {
-        "value": -0.248,
+        "value": -0.197,
         "compare": ">="
     },
     "cts__timing__setup__tns": {
-        "value": -124.0,
+        "value": -84.6,
         "compare": ">="
     },
     "cts__timing__hold__ws": {
@@ -84,15 +44,15 @@
         "compare": ">="
     },
     "globalroute__antenna_diodes_count": {
-        "value": 109,
+        "value": 106,
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -0.181,
+        "value": -0.285,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {
-        "value": -70.5,
+        "value": -86.3,
         "compare": ">="
     },
     "globalroute__timing__hold__ws": {
@@ -104,7 +64,7 @@
         "compare": ">="
     },
     "detailedroute__route__wirelength": {
-        "value": 4051905,
+        "value": 5546498,
         "compare": "<="
     },
     "detailedroute__route__drc_errors": {
@@ -116,43 +76,27 @@
         "compare": "<="
     },
     "detailedroute__antenna_diodes_count": {
-        "value": 109,
+        "value": 106,
         "compare": "<="
     },
-    "detailedroute__timing__setup__ws": {
-        "value": -0.1,
-        "compare": ">="
-    },
-    "detailedroute__timing__setup__tns": {
-        "value": -0.4,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__ws": {
-        "value": -0.106,
-        "compare": ">="
-    },
-    "detailedroute__timing__hold__tns": {
-        "value": -0.443,
-        "compare": ">="
-    },
     "finish__timing__setup__ws": {
-        "value": -0.308,
+        "value": -0.315,
         "compare": ">="
     },
     "finish__timing__setup__tns": {
-        "value": -152.0,
+        "value": -88.2,
         "compare": ">="
     },
     "finish__timing__hold__ws": {
-        "value": -0.118,
+        "value": -0.1,
         "compare": ">="
     },
     "finish__timing__hold__tns": {
-        "value": -2.46,
+        "value": -0.4,
         "compare": ">="
     },
     "finish__design__instance__area": {
-        "value": 735619,
+        "value": 731983,
         "compare": "<="
     }
 }

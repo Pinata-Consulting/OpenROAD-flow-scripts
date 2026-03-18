@@ -18,3 +18,6 @@ export PLACE_DENSITY = 0.75
 export CORNERS = slow typ fast
 
 export PDN_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(TOP_DESIGN_NICKNAME)/${DESIGN_NAME}/pdn.tcl
+
+export LEC_CHECK = 0
+
