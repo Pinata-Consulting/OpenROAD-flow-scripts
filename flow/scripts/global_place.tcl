@@ -2,6 +2,7 @@ utl::set_metrics_stage "globalplace__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
 erase_non_stage_variables place
 load_design 3_2_place_iop.odb 2_floorplan.sdc
+source_step_tcl PRE GLOBAL_PLACE
 
 set_dont_use $::env(DONT_USE_CELLS)
 
@@ -33,6 +34,21 @@ if { $::env(GPL_TIMING_DRIVEN) } {
   }
 }
 
+# Parameters for phi coefficients in global placement
+set min_phi $::env(MIN_PLACE_STEP_COEF)
+set max_phi $::env(MAX_PLACE_STEP_COEF)
+
+if { $min_phi > $max_phi } {
+  utl::error GPL 200 \
+    "MIN_PLACE_STEP_COEF ($min_phi) cannot be greater than \
+MAX_PLACE_STEP_COEF ($max_phi)"
+}
+
+lappend global_placement_args -force_center_initial_place
+
+lappend global_placement_args -min_phi_coef $::env(MIN_PLACE_STEP_COEF)
+lappend global_placement_args -max_phi_coef $::env(MAX_PLACE_STEP_COEF)
+
 proc do_placement { global_placement_args } {
   set all_args [concat [list -density [place_density_with_lb_addon] \
     -pad_left $::env(CELL_PAD_IN_SITES_GLOBAL_PLACEMENT) \
@@ -58,5 +74,7 @@ if { $::env(CLUSTER_FLOPS) } {
 }
 
 report_metrics 3 "global place" false false
+
+source_step_tcl POST GLOBAL_PLACE
 
 orfs_write_db $::env(RESULTS_DIR)/3_3_place_gp.odb

@@ -27,24 +27,43 @@ export SYNTH_HDL_FRONTEND    ?= slang
 export SYNTH_HIERARCHICAL    ?= 0
 
 # Use $(if) to defer conditional eval until all makefiles are read
-#
-# | Front End | Place Site | Utilization |
-# | --------- | ---------- | ----------- |
-# |   slang   |     6T     |      30     |
-# |   slang   |     8T     |      52     |
-# |  verific  |     6T     |      30     |
-# |  verific  |     8T     |      54     |
-
-export CORE_UTILIZATION = $(strip $(if $(filter slang,$(SYNTH_HDL_FRONTEND)), \
-	$(if $(filter ra02h138_DST_45CPP SC6T,$(PLACE_SITE)), \
-		30, \
-		52), \
-	$(if $(filter ra02h138_DST_45CPP SC6T,$(PLACE_SITE)), \
-		30, \
-		54)))
+export CORE_UTILIZATION = $(strip \
+    $(if $(filter 0.3s,$(RAPIDUS_PDK_VERSION)), \
+        $(if $(filter ra02h138_DST_45CPP,$(PLACE_SITE)), \
+            $(if $(filter slang,$(SYNTH_HDL_FRONTEND)), \
+                $(if $(filter 14LM,$(LAYER_STACK_OPTION)), \
+                    52, \
+                    $(if $(filter 16LM,$(LAYER_STACK_OPTION)), \
+                        54, \
+                        56 \
+                    ) \
+                ), \
+                $(if $(filter 14LM,$(LAYER_STACK_OPTION)), \
+                    50, \
+                    56 \
+                ) \
+            ), \
+            56 \
+        ), \
+        $(if $(filter 0.15,$(RAPIDUS_PDK_VERSION)), \
+            $(if $(filter ra02h138_DST_45CPP SC6T,$(PLACE_SITE)), \
+                30, \
+                52 \
+            ), \
+            $(if $(filter slang,$(SYNTH_HDL_FRONTEND)), \
+                $(if $(filter ra02h138_DST_45CPP SC6T,$(PLACE_SITE)), \
+                    30, \
+                    52 \
+                ), \
+	        $(if $(filter ra02h138_DST_45CPP SC6T,$(PLACE_SITE)), \
+                    30, \
+                    54 \
+                ) \
+            ) \
+        ) \
+    ))
 
 export CORE_MARGIN            = 1
-export PLACE_DENSITY          = 0.58
 
 export PLACE_PINS_ARGS = -min_distance_in_tracks -min_distance 1
 export CELL_PAD_IN_SITES_GLOBAL_PLACEMENT = 0

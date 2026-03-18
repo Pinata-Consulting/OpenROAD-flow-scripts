@@ -155,8 +155,13 @@ opt -purge
 # Technology mapping of adders
 if {
   [env_var_exists_and_non_empty ADDER_MAP_FILE] &&
-  ![env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] &&
-  ![env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]
+  (
+    (![env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] &&
+      ![env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]) ||
+    (([env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] ||
+        [env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]) &&
+      ![design_has_extracted_operators])
+  )
 } {
   # extract the full adders
   extract_fa
@@ -213,8 +218,10 @@ hilomap -singleton \
   -hicell {*}$::env(TIEHI_CELL_AND_PORT) \
   -locell {*}$::env(TIELO_CELL_AND_PORT)
 
-# Insert buffer cells for pass through wires
-insbuf -buf {*}$::env(MIN_BUF_CELL_AND_PORTS)
+if { $::env(SYNTH_INSBUF) } {
+  # Insert buffer cells for pass through wires
+  insbuf -buf {*}$::env(MIN_BUF_CELL_AND_PORTS)
+}
 
 # Reports
 tee -o $::env(REPORTS_DIR)/synth_check.txt check
