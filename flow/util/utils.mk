@@ -157,7 +157,7 @@ $(RESULTS_DIR)/6_final_no_power.def: $(RESULTS_DIR)/6_final.def
 
 
 .PHONY: gallery
-gallery: $(RESULTS_DIR)/6_final_no_power.def $(RESULTS_DIR)/6_final_only_clk.def
+gallery: check-klayout $(RESULTS_DIR)/6_final_no_power.def $(RESULTS_DIR)/6_final_only_clk.def
 	($(TIME_CMD) klayout -z -nc -rx -rd gallery_json=util/gallery.json \
 	        -rd results_path=$(RESULTS_DIR) \
 	        -rd tech_file=$(OBJECTS_DIR)/klayout.lyt \
