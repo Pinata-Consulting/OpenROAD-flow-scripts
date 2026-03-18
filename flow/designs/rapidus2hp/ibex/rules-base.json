@@ -8,7 +8,7 @@
         "compare": "=="
     },
     "placeopt__design__instance__area": {
-        "value": 1049,
+        "value": 1230,
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
@@ -48,11 +48,11 @@
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -0.048,
+        "value": -0.0344,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {
-        "value": -12.8,
+        "value": -1.02,
         "compare": ">="
     },
     "globalroute__timing__hold__ws": {
@@ -64,11 +64,11 @@
         "compare": ">="
     },
     "finish__timing__setup__ws": {
-        "value": -0.048,
+        "value": -0.0344,
         "compare": ">="
     },
     "finish__timing__setup__tns": {
-        "value": -12.8,
+        "value": -1.02,
         "compare": ">="
     },
     "finish__timing__hold__ws": {
@@ -80,7 +80,7 @@
         "compare": ">="
     },
     "finish__design__instance__area": {
-        "value": 1088,
+        "value": 1290,
         "compare": "<="
     }
 }

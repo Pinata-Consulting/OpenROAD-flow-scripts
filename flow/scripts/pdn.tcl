@@ -19,4 +19,6 @@ foreach net [$block getNets] {
   }
 }
 
+report_design_area
+
 orfs_write_db $::env(RESULTS_DIR)/2_4_floorplan_pdn.odb

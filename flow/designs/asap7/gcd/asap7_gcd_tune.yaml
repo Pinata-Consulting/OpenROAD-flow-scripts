@@ -10,4 +10,4 @@ run_config:
   samples: 10
   timeout: 1.0
 search_space:
-  file: designs/gcd/autotuner_new.json
+  file: designs/asap7/gcd/autotuner_new.json
