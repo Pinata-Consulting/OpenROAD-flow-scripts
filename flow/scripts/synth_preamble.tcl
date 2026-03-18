@@ -8,11 +8,11 @@ erase_non_stage_variables synth
 # floorplan step to be re-executed.
 if { [env_var_exists_and_non_empty SYNTH_NETLIST_FILES] } {
   if { [llength $::env(SYNTH_NETLIST_FILES)] == 1 } {
-    log_cmd exec cp -p $::env(SYNTH_NETLIST_FILES) $::env(RESULTS_DIR)/1_1_yosys.v
+    log_cmd exec cp -p $::env(SYNTH_NETLIST_FILES) $::env(RESULTS_DIR)/1_2_yosys.v
   } else {
     # The date should be the most recent date of the files, but to
     # keep things simple we just use the creation date
-    log_cmd exec cat {*}$::env(SYNTH_NETLIST_FILES) > $::env(RESULTS_DIR)/1_1_yosys.v
+    log_cmd exec cat {*}$::env(SYNTH_NETLIST_FILES) > $::env(RESULTS_DIR)/1_2_yosys.v
   }
   log_cmd exec cp -p $::env(SDC_FILE) $::env(RESULTS_DIR)/1_synth.sdc
   if { [env_var_exists_and_non_empty CACHED_REPORTS] } {
@@ -44,11 +44,49 @@ proc read_design_sources { } {
   }
 
   if { [env_var_equals SYNTH_HDL_FRONTEND slang] } {
-    # slang requires all files at once
     plugin -i slang
-    yosys read_slang -D SYNTHESIS --keep-hierarchy --compat=vcs \
-      --ignore-assertions --top $::env(DESIGN_NAME) \
-      {*}$vIdirsArgs {*}$::env(VERILOG_FILES) {*}[env_var_or_empty VERILOG_DEFINES]
+
+    set slang_args [list \
+      -D SYNTHESIS --keep-hierarchy --compat=vcs --ignore-assertions --top $::env(DESIGN_NAME) \
+      {*}$vIdirsArgs {*}[env_var_or_empty VERILOG_DEFINES]]
+
+    # slang requires all files at once
+    lappend slang_args {*}$::env(VERILOG_FILES)
+
+    # Add clock gate cell definition, if available
+    if { [env_var_exists_and_non_empty CLKGATE_MAP_FILE] } {
+      lappend slang_args $::env(CLKGATE_MAP_FILE)
+    }
+
+    # Apply top-level parameters
+    dict for {key value} [env_var_or_empty VERILOG_TOP_PARAMS] {
+      lappend slang_args -G "$key=$value"
+    }
+
+    # Automatically blackbox macros from ADDITIONAL_LIBS so that
+    # any competing Verilog definitions in the source files are
+    # ignored in favor of the liberty view, consistent with the
+    # behavior of the builtin Verilog frontend.
+    if { [env_var_exists_and_non_empty ADDITIONAL_LIBS] } {
+      foreach m [get_liberty_cell_names] {
+        lappend slang_args --blackboxed-module "$m"
+      }
+    }
+
+    # Apply module blackboxing based on module names as they appear
+    # in the input, that is before any module name mangling done
+    # by elaboration and synthesis
+    if { [env_var_exists_and_non_empty SYNTH_BLACKBOXES] } {
+      foreach m $::env(SYNTH_BLACKBOXES) {
+        lappend slang_args --blackboxed-module "$m"
+      }
+    }
+
+    # Add user arguments
+    lappend slang_args {*}$::env(SYNTH_SLANG_ARGS)
+
+    yosys read_slang {*}$slang_args
+
     # Workaround for yosys-slang#119
     setattr -unset init
   } elseif { [env_var_equals SYNTH_HDL_FRONTEND verific] } {
@@ -59,6 +97,16 @@ proc read_design_sources { } {
       verific -vlog-define {*}$::env(VERILOG_DEFINES)
     }
     verific -sv2012 {*}$::env(VERILOG_FILES)
+    verific -import -no-split-complex-ports $::env(DESIGN_NAME)
+
+    dict for {key value} [env_var_or_empty VERILOG_TOP_PARAMS] {
+      # Apply top-level parameters
+      chparam -set $key $value $::env(DESIGN_NAME)
+    }
+
+    if { [env_var_exists_and_non_empty SYNTH_BLACKBOXES] } {
+      error "Non-empty SYNTH_BLACKBOXES unsupported with HDL frontend \"verific\""
+    }
   } elseif { ![env_var_exists_and_non_empty SYNTH_HDL_FRONTEND] } {
     verilog_defaults -push
     if { [env_var_exists_and_non_empty VERILOG_DEFINES] } {
@@ -67,21 +115,25 @@ proc read_design_sources { } {
     foreach file $::env(VERILOG_FILES) {
       read_verilog -defer -sv {*}$vIdirsArgs $file
     }
+    # Read platform specific mapfile for OPENROAD_CLKGATE cells
+    if { [env_var_exists_and_non_empty CLKGATE_MAP_FILE] } {
+      read_verilog -defer $::env(CLKGATE_MAP_FILE)
+    }
     verilog_defaults -pop
+
+    dict for {key value} [env_var_or_empty VERILOG_TOP_PARAMS] {
+      # Apply top-level parameters
+      chparam -set $key $value $::env(DESIGN_NAME)
+    }
+
+    if { [env_var_exists_and_non_empty SYNTH_BLACKBOXES] } {
+      hierarchy -check -top $::env(DESIGN_NAME)
+      foreach m $::env(SYNTH_BLACKBOXES) {
+        blackbox $m
+      }
+    }
   } else {
     error "Unrecognized HDL frontend: $::env(SYNTH_HDL_FRONTEND)"
-  }
-
-  # Read platform specific mapfile for OPENROAD_CLKGATE cells
-  if { [env_var_exists_and_non_empty CLKGATE_MAP_FILE] } {
-    read_verilog -defer $::env(CLKGATE_MAP_FILE)
-  }
-
-  if { [env_var_exists_and_non_empty SYNTH_BLACKBOXES] } {
-    hierarchy -check -top $::env(DESIGN_NAME)
-    foreach m $::env(SYNTH_BLACKBOXES) {
-      blackbox $m
-    }
   }
 }
 
@@ -93,19 +145,24 @@ if { $::env(ABC_AREA) } {
   set abc_script $::env(SCRIPTS_DIR)/abc_speed.script
 }
 
-# Technology mapping for cells
-# ABC supports multiple liberty files, but the hook from Yosys to ABC doesn't
-set abc_args [list -script $abc_script \
-  -liberty $::env(DONT_USE_SC_LIB) \
-  -constr $::env(OBJECTS_DIR)/abc.constr]
+# Create argument list for stat
+set lib_args ""
+foreach lib $::env(LIB_FILES) {
+  append lib_args "-liberty $lib "
+}
 
 # Exclude dont_use cells. This includes macros that are specified via
 # LIB_FILES and ADDITIONAL_LIBS that are included in LIB_FILES.
+set lib_dont_use_args ""
 if { [env_var_exists_and_non_empty DONT_USE_CELLS] } {
   foreach cell $::env(DONT_USE_CELLS) {
-    lappend abc_args -dont_use $cell
+    lappend lib_dont_use_args -dont_use $cell
   }
 }
+
+# Technology mapping for cells
+set abc_args [list -script $abc_script \
+  {*}$lib_args {*}$lib_dont_use_args -constr $::env(OBJECTS_DIR)/abc.constr]
 
 if { [env_var_exists_and_non_empty SDC_FILE_CLOCK_PERIOD] } {
   puts "Extracting clock period from SDC file: $::env(SDC_FILE_CLOCK_PERIOD)"
@@ -116,12 +173,6 @@ if { [env_var_exists_and_non_empty SDC_FILE_CLOCK_PERIOD] } {
     lappend abc_args -D $clock_period
   }
   close $fp
-}
-
-# Create argument list for stat
-set stat_libs ""
-foreach lib $::env(DONT_USE_LIBS) {
-  append stat_libs "-liberty $lib "
 }
 
 set constr [open $::env(OBJECTS_DIR)/abc.constr w]
@@ -141,7 +192,7 @@ proc convert_liberty_areas { } {
       continue
     }
     set area [rtlil::get_attr -string -mod $cell area]
-    if { $found_cell == "" || [expr $area < $found_cell_area] } {
+    if { $found_cell == "" || $area < $found_cell_area } {
       set found_cell $cell
       set found_cell_area $area
     }

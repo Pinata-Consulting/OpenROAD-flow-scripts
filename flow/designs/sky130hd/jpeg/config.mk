@@ -6,7 +6,7 @@ export VERILOG_FILES = $(sort $(wildcard $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/*
 export VERILOG_INCLUDE_DIRS = $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/include
 export SDC_FILE      = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.sdc
 
-export CORE_UTILIZATION = 50
+export CORE_UTILIZATION = 55
 export PLACE_DENSITY_LB_ADDON = 0.15
 export TNS_END_PERCENT = 100
 
@@ -14,5 +14,3 @@ export FASTROUTE_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/fastroute.t
 
 export REMOVE_ABC_BUFFERS = 1
 
-# workaround for density growing to 0.91 from adjustments on TD/RD iterations
-export GPL_ROUTABILITY_DRIVEN = 0

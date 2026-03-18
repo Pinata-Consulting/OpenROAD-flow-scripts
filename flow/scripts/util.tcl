@@ -1,6 +1,11 @@
+# Extract cell names
+proc get_liberty_cell_names { } {
+  return [tee -q -s result.string select -list-mod =A:liberty_cell]
+}
+
 proc log_cmd { cmd args } {
   # log the command, escape arguments with spaces
-  set log_cmd "$cmd[join [lmap arg $args { format " %s" [expr { [string match {* *} $arg] ? "\"$arg\"" : "$arg" }] }] ""]"
+  set log_cmd "$cmd[join [lmap arg $args { format " %s" [expr { [string match {* *} $arg] ? "\"$arg\"" : "$arg" }] }] ""]" ;# tclint-disable-line line-length
   puts $log_cmd
   set start [clock seconds]
   set result [uplevel 1 [list $cmd {*}$args]]
@@ -13,28 +18,21 @@ proc log_cmd { cmd args } {
   return $result
 }
 
-proc fast_route { } {
-  if { [env_var_exists_and_non_empty FASTROUTE_TCL] } {
-    log_cmd source $::env(FASTROUTE_TCL)
-  } else {
-    log_cmd set_global_routing_layer_adjustment $::env(MIN_ROUTING_LAYER)-$::env(MAX_ROUTING_LAYER) $::env(ROUTING_LAYER_ADJUSTMENT)
-    log_cmd set_routing_layers -signal $::env(MIN_ROUTING_LAYER)-$::env(MAX_ROUTING_LAYER)
-  }
-}
-
 proc repair_timing_helper { args } {
-  set additional_args "$args -verbose"
+  set additional_args {}
   append_env_var additional_args SETUP_SLACK_MARGIN -setup_margin 1
-  if { $::env(HOLD_SLACK_MARGIN) < 0 } {
-    append_env_var additional_args HOLD_SLACK_MARGIN -hold_margin 1
-  }
+  append_env_var additional_args HOLD_SLACK_MARGIN -hold_margin 1
   append_env_var additional_args SETUP_MOVE_SEQUENCE -sequence 1
   append_env_var additional_args TNS_END_PERCENT -repair_tns 1
   append_env_var additional_args SKIP_PIN_SWAP -skip_pin_swap 0
   append_env_var additional_args SKIP_GATE_CLONING -skip_gate_cloning 0
   append_env_var additional_args SKIP_BUFFER_REMOVAL -skip_buffer_removal 0
   append_env_var additional_args SKIP_LAST_GASP -skip_last_gasp 0
+  append_env_var additional_args SKIP_VT_SWAP -skip_vt_swap 0
+  append_env_var additional_args SKIP_CRIT_VT_SWAP -skip_crit_vt_swap 0
   append_env_var additional_args MATCH_CELL_FOOTPRINT -match_cell_footprint 0
+  lappend additional_args {*}$args -verbose
+
   log_cmd repair_timing {*}$additional_args
 }
 
@@ -93,7 +91,8 @@ proc find_sdc_file { input_file } {
   set sdc_file ""
 
   set exact_sdc [string map {.odb .sdc} $input_file]
-  set sdc_files [glob -nocomplain -directory $::env(RESULTS_DIR) -types f "\[1-9+\]_\[1-9_A-Za-z\]*\.sdc"]
+  set sdc_files \
+    [glob -nocomplain -directory $::env(RESULTS_DIR) -types f "\[1-9+\]_\[1-9_A-Za-z\]*\.sdc"]
   set sdc_files [lsort -decreasing -dictionary $sdc_files]
   set sdc_files [lmap file $sdc_files { file normalize $file }]
   foreach name $sdc_files {
@@ -151,11 +150,14 @@ proc find_macros { } {
 }
 
 proc erase_non_stage_variables { stage_name } {
+  if { $::env(KEEP_VARS) } {
+    return
+  }
   # "$::env(SCRIPTS_DIR)/stage_variables.py stage_name" returns list of
   # variables to erase.
-  # 
+  #
   # Tcl yaml package can't be imported in the sta/openroad environment:
-  # 
+  #
   # https://github.com/The-OpenROAD-Project/OpenROAD/issues/5875
   set variables [exec $::env(SCRIPTS_DIR)/non_stage_variables.py $stage_name]
   foreach var $variables {
@@ -173,13 +175,129 @@ proc place_density_with_lb_addon { } {
     set place_density_lb [gpl::get_global_placement_uniform_density \
       -pad_left $::env(CELL_PAD_IN_SITES_GLOBAL_PLACEMENT) \
       -pad_right $::env(CELL_PAD_IN_SITES_GLOBAL_PLACEMENT)]
-    set place_density [expr $place_density_lb + ((1.0 - $place_density_lb) * $::env(PLACE_DENSITY_LB_ADDON)) + 0.01]
+    set place_density \
+      [expr $place_density_lb + ((1.0 - $place_density_lb) * $::env(PLACE_DENSITY_LB_ADDON)) + 0.01]
     if { $place_density > 1.0 } {
-      utl::error FLW 24 "Place density exceeds 1.0 (current PLACE_DENSITY_LB_ADDON = $::env(PLACE_DENSITY_LB_ADDON)). Please check if the value of PLACE_DENSITY_LB_ADDON is between 0 and 0.99."
+      utl::error FLW 24 \
+        "Place density exceeds 1.0 (current PLACE_DENSITY_LB_ADDON = \
+         $::env(PLACE_DENSITY_LB_ADDON)). Please check if the value of \
+         PLACE_DENSITY_LB_ADDON is between 0 and 0.99."
     }
-    puts "Placement density is $place_density, computed from PLACE_DENSITY_LB_ADDON $::env(PLACE_DENSITY_LB_ADDON) and lower bound $place_density_lb"
+    puts "Placement density is $place_density, computed from PLACE_DENSITY_LB_ADDON \
+      $::env(PLACE_DENSITY_LB_ADDON) and lower bound $place_density_lb"
   } else {
     set place_density $::env(PLACE_DENSITY)
   }
   return $place_density
+}
+
+proc source_env_var_if_exists { env_var } {
+  if { [env_var_exists_and_non_empty $env_var] } {
+    log_cmd source $::env($env_var)
+  }
+}
+
+
+# Feature toggle for now, eventually the -hier option
+# will be default and this code will be deleted.
+proc hier_options { } {
+  if {
+    ([env_var_exists_and_non_empty SYNTH_WRAPPED_OPERATORS] ||
+      [env_var_exists_and_non_empty SWAP_ARITH_OPERATORS]) &&
+    !$::env(OPENROAD_HIERARCHICAL)
+  } {
+    error "SYNTH_WRAPPED_OPERATORS or SWAP_ARITH_OPERATORS require OPENROAD_HIERARCHICAL to be set."
+  }
+  if { $::env(OPENROAD_HIERARCHICAL) } {
+    return "-hier"
+  } else {
+    return ""
+  }
+}
+
+proc is_physical_only_master { master } {
+  set physical_only_type_patterns [list \
+    "COVER" \
+    "COVER_BUMP" \
+    "RING" \
+    "PAD_SPACER" \
+    "CORE_FEEDTHROUGH" \
+    "CORE_SPACER" \
+    "CORE_ANTENNACELL" \
+    "CORE_WELLTAP" \
+    "ENDCAP*"]
+  set master_type [$master getType]
+  foreach pattern $physical_only_type_patterns {
+    if { [string match $pattern $master_type] } {
+      return 1
+    }
+  }
+  return 0
+}
+
+# Returns 1 if the master has no signal pins (only power/ground or none).
+proc has_signal_pins { master } {
+  foreach mterm [$master getMTerms] {
+    set sig_type [$mterm getSigType]
+    if { $sig_type != "POWER" && $sig_type != "GROUND" } {
+      return 1
+    }
+  }
+  return 0
+}
+
+# Returns 1 if the master has a corresponding liberty cell.
+proc has_liberty_cell { master } {
+  set master_name [$master getName]
+  set lib_cells [get_lib_cells -quiet */$master_name]
+  if { $lib_cells == {} } {
+    return 0
+  }
+  return 1
+}
+
+# Finds all physical-only masters in the current database and
+# returns their names.
+proc find_physical_only_masters { } {
+  set db [::ord::get_db]
+  set libs [$db getLibs]
+  set physical_only_masters [list]
+  foreach lib $libs {
+    foreach master [$lib getMasters] {
+      set master_name [$master getName]
+      if { [is_physical_only_master $master] } {
+        lappend physical_only_masters $master_name
+        continue
+      }
+
+      # Consider cells with no signal pins and no liberty cell as physical-only
+      if { [has_liberty_cell $master] == 0 } {
+        if { [has_signal_pins $master] == 0 } {
+          lappend physical_only_masters $master_name
+        } else {
+          puts "Warning: master $master_name has signal pins but no liberty cell"
+        }
+      }
+    }
+  }
+  return $physical_only_masters
+}
+
+proc orfs_write_db { output_file } {
+  if { !$::env(WRITE_ODB_AND_SDC_EACH_STAGE) } {
+    return
+  }
+  log_cmd write_db $output_file
+}
+
+proc orfs_write_sdc { output_file } {
+  if { !$::env(WRITE_ODB_AND_SDC_EACH_STAGE) } {
+    return
+  }
+  log_cmd write_sdc -no_timestamp $output_file
+}
+
+proc source_step_tcl { hook_type step_name } {
+  set env_var "${hook_type}_${step_name}_TCL"
+  source_env_var_if_exists $env_var
 }

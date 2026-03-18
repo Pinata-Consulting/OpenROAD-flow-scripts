@@ -3,9 +3,7 @@
 exclude = [
     "flow/results",
     "flow/logs",
-    "flow/designs",
-    "flow/platforms",
-    "flow/scripts/*.tcl",
+    "flow/designs/asap7/cva6/constraint.sdc",
     "tools/OpenROAD",
     "tools/yosys",
     "tools/yosys-slang",
@@ -18,6 +16,5 @@ ignore = [
 [style]
 indent = 2
 line-length = 100
-allow-aligned-sets = true
 indent-namespace-eval = false
 spaces-in-braces = true

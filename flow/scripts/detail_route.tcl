@@ -1,10 +1,17 @@
 utl::set_metrics_stage "detailedroute__{}"
 source $::env(SCRIPTS_DIR)/load.tcl
 load_design 5_1_grt.odb 5_1_grt.sdc
+source_step_tcl PRE DETAIL_ROUTE
 if { ![grt::have_routes] } {
   error "Global routing failed, run `make gui_grt` and load $::global_route_congestion_report \
         in DRC viewer to view congestion"
 }
+
+if { $::env(SKIP_DETAILED_ROUTE) } {
+  orfs_write_db $::env(RESULTS_DIR)/5_2_route.odb
+  exit
+}
+
 erase_non_stage_variables route
 set_propagated_clock [all_clocks]
 
@@ -12,8 +19,6 @@ set additional_args ""
 append_env_var additional_args dbProcessNode -db_process_node 1
 append_env_var additional_args OR_SEED -or_seed 1
 append_env_var additional_args OR_K -or_k 1
-append_env_var additional_args MIN_ROUTING_LAYER -bottom_routing_layer 1
-append_env_var additional_args MAX_ROUTING_LAYER -top_routing_layer 1
 append_env_var additional_args VIA_IN_PIN_MIN_LAYER -via_in_pin_bottom_layer 1
 append_env_var additional_args VIA_IN_PIN_MAX_LAYER -via_in_pin_top_layer 1
 append_env_var additional_args DISABLE_VIA_GEN -disable_via_gen 0
@@ -48,12 +53,15 @@ set all_args [concat [list \
 
 log_cmd detailed_route {*}$all_args
 
-if { ![env_var_equals SKIP_ANTENNA_REPAIR_POST_DRT 1] } {
+if {
+  !$::env(SKIP_ANTENNA_REPAIR_POST_DRT) &&
+  [env_var_exists_and_non_empty MAX_REPAIR_ANTENNAS_ITER_DRT]
+} {
   set repair_antennas_iters 1
   if { [repair_antennas] } {
     detailed_route {*}$all_args
   }
-  while { [check_antennas] && $repair_antennas_iters < 5 } {
+  while { [check_antennas] && $repair_antennas_iters < $::env(MAX_REPAIR_ANTENNAS_ITER_DRT) } {
     repair_antennas
     detailed_route {*}$all_args
     incr repair_antennas_iters
@@ -62,9 +70,7 @@ if { ![env_var_equals SKIP_ANTENNA_REPAIR_POST_DRT 1] } {
   utl::metric_int "antenna_diodes_count" -1
 }
 
-if { [env_var_exists_and_non_empty POST_DETAIL_ROUTE_TCL] } {
-  source $::env(POST_DETAIL_ROUTE_TCL)
-}
+source_step_tcl POST DETAIL_ROUTE
 
 check_antennas -report_file $env(REPORTS_DIR)/drt_antennas.log
 
@@ -72,4 +78,9 @@ if { ![design_is_routed] } {
   error "Design has unrouted nets."
 }
 
-write_db $::env(RESULTS_DIR)/5_2_route.odb
+report_design_area
+
+# Don't report metrics as we have not extracted parasitics, which will happen
+# in final so there is no need to repeat it here.
+
+orfs_write_db $::env(RESULTS_DIR)/5_2_route.odb

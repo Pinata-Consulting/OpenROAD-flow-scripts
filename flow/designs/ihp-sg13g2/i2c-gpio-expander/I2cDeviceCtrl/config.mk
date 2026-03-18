@@ -10,7 +10,7 @@ export SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/$(TOP_DESIGN_NICKNAME)/${DESIGN_NAM
 export DIE_AREA = 0.0 0.0 147.84 147.42
 export CORE_AREA = 18.72 18.9 128.64 128.52
 
-export MAX_ROUTING_LAYER = TopMetal2
+export MAX_ROUTING_LAYER = Metal4
 
 export TNS_END_PERCENT = 100
 export PLACE_DENSITY = 0.75
@@ -18,3 +18,6 @@ export PLACE_DENSITY = 0.75
 export CORNERS = slow typ fast
 
 export PDN_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(TOP_DESIGN_NICKNAME)/${DESIGN_NAME}/pdn.tcl
+
+export LEC_CHECK = 0
+

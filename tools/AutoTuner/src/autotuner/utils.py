@@ -69,6 +69,24 @@ CONSTRAINTS_SDC = "constraint.sdc"
 # Name of the TCL script run before routing
 FASTROUTE_TCL = "fastroute.tcl"
 DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+# The worst of optimized metric
+ERROR_METRIC = 9e99
+
+
+def calculate_score(metrics, step=1):
+    """Calculate optimization score from metrics."""
+    error = "ERR" in metrics.values()
+    not_found = "N/A" in metrics.values()
+
+    if error or not_found:
+        return (ERROR_METRIC, ERROR_METRIC, ERROR_METRIC, ERROR_METRIC)
+
+    effective_clk_period = metrics["clk_period"] - metrics["worst_slack"]
+    num_drc = metrics["num_drc"]
+    gamma = effective_clk_period / 10
+    score = effective_clk_period * (100 / step) + gamma * num_drc
+
+    return (score, effective_clk_period, num_drc, metrics["die_area"])
 
 
 def write_sdc(variables, path, sdc_original, constraints_sdc):
@@ -253,10 +271,10 @@ def parse_config(
                 print(f"[ERROR TUN-0017] Variable {key} is not tunable.")
                 sys.exit(1)
             options += f" {key}={value}"
-    if sdc:
+    if sdc or sdc_original:
         write_sdc(sdc, path, sdc_original, constraints_sdc)
         options += f" SDC_FILE={path}/{constraints_sdc}"
-    if fast_route:
+    if fast_route or fr_original:
         write_fast_route(fast_route, path, platform, fr_original, fastroute_tcl)
         options += f" FASTROUTE_TCL={path}/{fastroute_tcl}"
     return options
@@ -287,6 +305,21 @@ def run_command(
         raise RuntimeError
 
 
+def calculate_trial_path(args, base_dir, flow_variant):
+    """
+    Calculate the log path and flow variant
+    """
+    flow_variant_with_experiment = f"{args.experiment}/{flow_variant}"
+    log_path = os.path.abspath(
+        os.path.join(
+            base_dir,
+            f"flow/logs/{args.platform}/{args.design}",
+            flow_variant_with_experiment,
+        )
+    )
+    return log_path, flow_variant_with_experiment
+
+
 def openroad(
     args,
     base_dir,
@@ -297,10 +330,8 @@ def openroad(
     """
     Run OpenROAD-flow-scripts with a given set of parameters.
     """
-    # Make sure path ends in a slash, i.e., is a folder
-    flow_variant = f"{args.experiment}/{flow_variant}"
-    log_path = os.path.abspath(
-        os.path.join(base_dir, f"flow/logs/{args.platform}/{args.design}", flow_variant)
+    log_path, flow_variant = calculate_trial_path(
+        args=args, base_dir=base_dir, flow_variant=flow_variant
     )
     report_path = os.path.abspath(
         os.path.join(
@@ -324,9 +355,15 @@ def openroad(
     export_command += " && "
 
     make_command = export_command
+    if args.memory_limit is not None:
+        limit = int(args.memory_limit * 1_000_000)
+        make_command += f"ulimit -v {limit}; "
     make_command += f"make -C {base_dir}/flow DESIGN_CONFIG=designs/"
     make_command += f"{args.platform}/{args.design}/config.mk"
     make_command += f" PLATFORM={args.platform}"
+    work_home = getattr(args, "work_dir", None)
+    if work_home is not None:
+        make_command += f" WORK_HOME={work_home}"
     make_command += f" FLOW_VARIANT={flow_variant} {parameters}"
     make_command += " EQUIVALENCE_CHECK=0"
     make_command += f" NUM_CORES={args.openroad_threads} SHELL=bash"
@@ -439,6 +476,8 @@ def read_config(file_name, mode, algorithm):
         return ret
 
     def read_sweep(this):
+        if this.get("type") == "string":
+            return {"type": "string", "values": this["values"]}
         return [*this["minmax"], this["step"]]
 
     def apply_condition(config, data):
@@ -450,40 +489,48 @@ def read_config(file_name, mode, algorithm):
         # algorithms should take different methods (will be added)
         if algorithm != "random":
             return config
-        dp_pad_min = data["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"]["minmax"][0]
-        dp_pad_step = data["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"]["step"]
-        if dp_pad_step == 1:
-            config["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"] = tune.sample_from(
-                lambda spec: np.random.randint(
-                    dp_pad_min, spec.config.CELL_PAD_IN_SITES_GLOBAL_PLACEMENT + 1
+        if "CELL_PAD_IN_SITES_DETAIL_PLACEMENT" in data:
+            dp_pad_min = data["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"]["minmax"][0]
+            dp_pad_step = data["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"]["step"]
+            if dp_pad_step == 1:
+                config["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"] = tune.sample_from(
+                    lambda spec: np.random.randint(
+                        dp_pad_min, spec.config.CELL_PAD_IN_SITES_GLOBAL_PLACEMENT + 1
+                    )
                 )
-            )
-        if dp_pad_step > 1:
-            config["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"] = tune.sample_from(
-                lambda spec: random.randrange(
-                    dp_pad_min,
-                    spec.config.CELL_PAD_IN_SITES_GLOBAL_PLACEMENT + 1,
-                    dp_pad_step,
+            if dp_pad_step > 1:
+                config["CELL_PAD_IN_SITES_DETAIL_PLACEMENT"] = tune.sample_from(
+                    lambda spec: random.randrange(
+                        dp_pad_min,
+                        spec.config.CELL_PAD_IN_SITES_GLOBAL_PLACEMENT + 1,
+                        dp_pad_step,
+                    )
                 )
-            )
         return config
 
     def read_tune(this):
         from ray import tune
 
-        min_, max_ = this["minmax"]
-        if min_ == max_:
-            # Returning a choice of a single element allow pbt algorithm to
-            # work. pbt does not accept single values as tunable.
-            return tune.choice([min_, max_])
-        if this["type"] == "int":
-            if this["step"] == 1:
-                return tune.randint(min_, max_)
-            return tune.choice(np.ndarray.tolist(np.arange(min_, max_, this["step"])))
-        if this["type"] == "float":
-            if this["step"] == 0:
-                return tune.uniform(min_, max_)
-            return tune.choice(np.ndarray.tolist(np.arange(min_, max_, this["step"])))
+        if "minmax" in this:
+            min_, max_ = this["minmax"]
+            if min_ == max_:
+                # Returning a choice of a single element allow pbt algorithm to
+                # work. pbt does not accept single values as tunable.
+                return tune.choice([min_, max_])
+            if this["type"] == "int":
+                if this["step"] == 1:
+                    return tune.randint(min_, max_)
+                return tune.choice(
+                    np.ndarray.tolist(np.arange(min_, max_, this["step"]))
+                )
+            if this["type"] == "float":
+                if this["step"] == 0:
+                    return tune.uniform(min_, max_)
+                return tune.choice(
+                    np.ndarray.tolist(np.arange(min_, max_, this["step"]))
+                )
+        if this["type"] == "string":
+            return tune.choice(this["values"])
         return None
 
     def read_tune_ax(name, this):
@@ -493,33 +540,41 @@ def read_config(file_name, mode, algorithm):
         from ray import tune
 
         dict_ = dict(name=name)
-        if "minmax" not in this:
-            return None
-        min_, max_ = this["minmax"]
-        if min_ == max_:
-            dict_["type"] = "fixed"
-            dict_["value"] = min_
-        elif this["type"] == "int":
-            if this["step"] == 1:
-                dict_["type"] = "range"
-                dict_["bounds"] = [min_, max_]
-                dict_["value_type"] = "int"
+        if "minmax" in this:
+            min_, max_ = this["minmax"]
+            if min_ == max_:
+                dict_["type"] = "fixed"
+                dict_["value"] = min_
+            elif this["type"] == "int":
+                if this["step"] == 1:
+                    dict_["type"] = "range"
+                    dict_["bounds"] = [min_, max_]
+                    dict_["value_type"] = "int"
+                else:
+                    dict_["type"] = "choice"
+                    dict_["values"] = tune.randint(min_, max_, this["step"])
+                    dict_["value_type"] = "int"
+            elif this["type"] == "float":
+                if this["step"] == 1:
+                    dict_["type"] = "choice"
+                    dict_["values"] = tune.choice(
+                        np.ndarray.tolist(np.arange(min_, max_, this["step"]))
+                    )
+                    dict_["value_type"] = "float"
+                else:
+                    dict_["type"] = "range"
+                    dict_["bounds"] = [min_, max_]
+                    dict_["value_type"] = "float"
+            return dict_
+        if "values" in this:
+            dict_["type"] = "choice"
+            dict_["values"] = this["values"]
+            if this["type"] == "string":
+                dict_["value_type"] = "str"
             else:
-                dict_["type"] = "choice"
-                dict_["values"] = tune.randint(min_, max_, this["step"])
-                dict_["value_type"] = "int"
-        elif this["type"] == "float":
-            if this["step"] == 1:
-                dict_["type"] = "choice"
-                dict_["values"] = tune.choice(
-                    np.ndarray.tolist(np.arange(min_, max_, this["step"]))
-                )
-                dict_["value_type"] = "float"
-            else:
-                dict_["type"] = "range"
-                dict_["bounds"] = [min_, max_]
-                dict_["value_type"] = "float"
-        return dict_
+                dict_["value_type"] = this["type"]
+            return dict_
+        return None
 
     def read_tune_pbt(name, this):
         """
@@ -528,15 +583,17 @@ def read_config(file_name, mode, algorithm):
         """
         from ray import tune
 
-        if "minmax" not in this:
-            return None
-        min_, max_ = this["minmax"]
-        if min_ == max_:
-            return tune.choice([min_, max_])
-        if this["type"] == "int":
-            return tune.randint(min_, max_)
-        if this["type"] == "float":
-            return tune.uniform(min_, max_)
+        if "minmax" in this:
+            min_, max_ = this["minmax"]
+            if min_ == max_:
+                return tune.choice([min_, max_])
+            if this["type"] == "int":
+                return tune.randint(min_, max_)
+            if this["type"] == "float":
+                return tune.uniform(min_, max_)
+        if "values" in this:
+            return tune.choice(this["values"])
+        return None
 
     # Check file exists and whether it is a valid JSON file.
     assert os.path.isfile(file_name), f"File {file_name} not found."
@@ -622,6 +679,20 @@ def openroad_distributed(
     variant=None,
 ):
     """Simple wrapper to run openroad distributed with Ray."""
+    if variant is None:
+        variant_parts = []
+        for key, value in config.items():
+            if key not in ["_SDC_FILE_PATH", "_FR_FILE_PATH"]:
+                variant_parts.append(f"{key}_{value}")
+        variant = "_".join(variant_parts) if variant_parts else ""
+    flow_variant = f"{uuid.uuid4()}-{variant}" if variant else f"{uuid.uuid4()}"
+
+    trial_path, _ = calculate_trial_path(
+        args=args, base_dir=repo_dir, flow_variant=flow_variant
+    )
+
+    os.makedirs(trial_path, exist_ok=True)
+
     config = parse_config(
         config=config,
         base_dir=repo_dir,
@@ -630,15 +701,15 @@ def openroad_distributed(
         constraints_sdc=CONSTRAINTS_SDC,
         fr_original=fr_original,
         fastroute_tcl=FASTROUTE_TCL,
+        path=trial_path,
     )
-    if variant is None:
-        variant = config.replace(" ", "_").replace("=", "_")
+
     t = time.time()
     metric_file = openroad(
         args=args,
         base_dir=repo_dir,
         parameters=config,
-        flow_variant=f"{uuid.uuid4()}-{variant}" if variant else f"{uuid.uuid4()}",
+        flow_variant=flow_variant,
         install_path=install_path,
     )
     duration = time.time() - t
@@ -648,9 +719,29 @@ def openroad_distributed(
 @ray.remote
 def consumer(queue):
     """consumer"""
-    while not queue.empty():
-        next_item = queue.get()
-        name = next_item[1]
-        print(f"[INFO TUN-0007] Scheduling run for parameter {name}.")
-        ray.get(openroad_distributed.remote(*next_item))
-        print(f"[INFO TUN-0008] Finished run for parameter {name}.")
+    item = queue.get()
+    tb_logger = item[6]
+
+    while item:
+        args, repo_dir, config, sdc, fr, install, tb_logger = item
+        print(f"[INFO TUN-0007] Scheduling run for parameter {config}.")
+        metric_file, _ = ray.get(
+            openroad_distributed.remote(args, repo_dir, config, sdc, fr, install)
+        )
+        print(f"[INFO TUN-0008] Finished run for parameter {config}.")
+
+        metrics = read_metrics(metric_file, args.stop_stage)
+        score, effective_clk_period, num_drc, die_area = calculate_score(metrics)
+
+        ray.get(
+            tb_logger.log_sweep_metrics.remote(
+                params=config,
+                metrics=metrics,
+                score=score,
+                effective_clk_period=effective_clk_period,
+                num_drc=num_drc,
+                die_area=die_area,
+            )
+        )
+
+        item = queue.get() if not queue.empty() else None

@@ -1,8 +1,8 @@
-@Library('utils@orfs-v2.3.5') _
+@Library('utils@orfs-v2.3.6') _
 
 node {
-    
-    def isDefaultBranch = (env.BRANCH_NAME == 'master') 
+
+    def isDefaultBranch = (env.BRANCH_NAME == 'master')
     def daysToKeep = '20';
     def numToKeep = (isDefaultBranch ? '-1' : '10');
 
@@ -11,10 +11,10 @@ node {
 
         buildDiscarder(logRotator(
             daysToKeepStr:         daysToKeep,
-            artifactDaysToKeepStr: daysToKeep, 
+            artifactDaysToKeepStr: daysToKeep,
 
             numToKeepStr:          numToKeep,
-            artifactNumToKeepStr:  numToKeep 
+            artifactNumToKeepStr:  numToKeep
         ))
     ]);
 
@@ -52,16 +52,20 @@ node {
         buildBins(DOCKER_IMAGE);
     }
 
-    stage('Run Tests') {
-        if (env.CHANGE_BRANCH && env.CHANGE_BRANCH.contains('ci-dev')) {
-            runTests(DOCKER_IMAGE, 'dev');
-        } else {
-            runTests(DOCKER_IMAGE, 'pr');
+    try {
+        stage('Run Tests') {
+            if (env.CHANGE_BRANCH && env.CHANGE_BRANCH.contains('ci-dev')) {
+                runTests(DOCKER_IMAGE, 'dev');
+            } else {
+                runTests(DOCKER_IMAGE, 'pr');
+            }
         }
-    }
-
-    stage ('Cleanup and Reporting') {
-        finalReport(DOCKER_IMAGE);
+    } catch (e) {
+        throw e
+    } finally {
+        stage ('Cleanup and Reporting') {
+            finalReport(DOCKER_IMAGE);
+        }
     }
 
 }
