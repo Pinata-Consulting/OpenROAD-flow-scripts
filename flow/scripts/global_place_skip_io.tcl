@@ -16,4 +16,6 @@ if { [env_var_exists_and_non_empty FLOORPLAN_DEF] } {
 
 source_step_tcl POST GLOBAL_PLACE_SKIP_IO
 
+report_design_area
+
 orfs_write_db $::env(RESULTS_DIR)/3_1_place_gp_skip_io.odb

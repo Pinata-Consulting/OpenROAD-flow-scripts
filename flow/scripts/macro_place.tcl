@@ -7,5 +7,7 @@ source $::env(SCRIPTS_DIR)/macro_place_util.tcl
 
 source_step_tcl POST MACRO_PLACE
 
+report_design_area
+
 orfs_write_db $::env(RESULTS_DIR)/2_2_floorplan_macro.odb
 write_macro_placement $::env(RESULTS_DIR)/2_2_floorplan_macro.tcl

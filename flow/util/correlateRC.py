@@ -370,10 +370,9 @@ if args.mode == "net":
 ################################################################
 
 if args.mode == "segment":
-    print(
-        "# Updated layer resistance {}/um capacitance {}/um".format(res_unit, cap_unit)
-    )
+    print("\nUnits: resistance [{}/um], capacitance [{}/um]".format(res_unit, cap_unit))
 
+    layer_models = {}
     for layer_name in routing_layers:
         # There may be routing layers with no segments, so we check if the
         # layer exists in the dict.
@@ -388,12 +387,37 @@ if args.mode == "segment":
 
         res_model = LinearRegression(fit_intercept=False).fit(lengths, resistances)
         cap_model = LinearRegression(fit_intercept=False).fit(lengths, capacitances_ff)
+        layer_models[layer_name] = (
+            res_model,
+            cap_model,
+            lengths,
+            resistances,
+            capacitances_ff,
+        )
 
-        r_sq = res_model.score(lengths, resistances)
-        print("# Resistance coefficient of determination: {:.4f}".format(r_sq))
-        r_sq = cap_model.score(lengths, capacitances_ff)
-        print("# Capacitance coefficient of determination: {:.4f}".format(r_sq))
+    # Print R² table
+    print("{:<13s} | {:>8s} | {:>8s}".format("\nLayer", "Res R²", "Cap R²"))
+    print("-" * 34)
+    for layer_name, (
+        res_model,
+        cap_model,
+        lengths,
+        resistances,
+        capacitances_ff,
+    ) in layer_models.items():
+        r_sq_res = res_model.score(lengths, resistances)
+        r_sq_cap = cap_model.score(lengths, capacitances_ff)
+        print("{:<12s} | {:>8.4f} | {:>8.4f}".format(layer_name, r_sq_res, r_sq_cap))
+    print("-" * 34)
+    print("")
 
+    for layer_name, (
+        res_model,
+        cap_model,
+        lengths,
+        resistances,
+        capacitances_ff,
+    ) in layer_models.items():
         print(
             "set_layer_rc -layer {} -resistance {:.5E} -capacitance {:.5E}".format(
                 layer_name,
@@ -401,3 +425,4 @@ if args.mode == "segment":
                 cap_model.coef_[0] * 1e-15 / cap_scale,
             )
         )
+    print("")
