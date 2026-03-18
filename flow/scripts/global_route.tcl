@@ -6,7 +6,7 @@ load_design 4_cts.odb 4_cts.sdc
 # This proc is here to allow us to use 'return' to return early from this
 # file which is sourced
 proc global_route_helper { } {
-  source_env_var_if_exists PRE_GLOBAL_ROUTE_TCL
+  source_step_tcl PRE GLOBAL_ROUTE
 
   set res_aware ""
   append_env_var res_aware ENABLE_RESISTANCE_AWARE -resistance_aware 0
@@ -113,6 +113,7 @@ proc global_route_helper { } {
   source [file join $::env(SCRIPTS_DIR) "write_ref_sdc.tcl"]
 
   write_guides $::env(RESULTS_DIR)/route.guide
+  source_step_tcl POST GLOBAL_ROUTE
   orfs_write_db $::env(RESULTS_DIR)/5_1_grt.odb
   orfs_write_sdc $::env(RESULTS_DIR)/5_1_grt.sdc
 }

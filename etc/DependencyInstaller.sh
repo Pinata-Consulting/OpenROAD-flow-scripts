@@ -20,7 +20,10 @@ _versionCompare() {
 }
 
 _installORDependencies() {
-    ./tools/OpenROAD/etc/DependencyInstaller.sh ${OR_INSTALLER_ARGS}
+    if [[ ${YOSYS_VER} == "" ]]; then
+        YOSYS_VER=v$(grep 'yosys_ver =' tools/yosys/docs/source/conf.py | awk -F'"' '{print $2}')
+    fi
+    ./tools/OpenROAD/etc/DependencyInstaller.sh ${OR_INSTALLER_ARGS} -yosys-ver="${YOSYS_VER}"
 }
 
 _installPipCommon() {
@@ -149,19 +152,25 @@ _installUbuntuPackages() {
     apt-get -y update
     apt-get -y install --no-install-recommends \
         bison \
+        capnproto \
         curl \
         flex \
         help2man \
+        libboost-iostreams-dev \
+        libcapnp-dev \
         libfl-dev \
         libfl2 \
         libgit2-dev \
         libgoogle-perftools-dev \
+        libgtest-dev \
         libqt5multimediawidgets5 \
         libqt5opengl5 \
         libqt5svg5-dev \
         libqt5xmlpatterns5-dev \
+        libtbb-dev \
         libz-dev \
         perl \
+        pkg-config \
         python3-pip \
         python3-venv \
         qtmultimedia5-dev \
@@ -257,7 +266,7 @@ _installUbuntuPackages() {
 
 _installDarwinPackages() {
     brew install libffi tcl-tk ruby
-    brew install python libomp
+    brew install python libomp doxygen capnp tbb bison flex boost spdlog zlib
     brew link --force libomp
     brew install --cask klayout
     brew install docker docker-buildx
@@ -303,6 +312,10 @@ Usage: $0 [-all|-base|-common] [-<ARGS>]
                                 #    sudo or with root access.
        $0 -ci
                                 # Installs CI tools
+       $0 -yosys-ver=VERSION
+                                # Installs specified version of Yosys.
+                                #    By default, the Yosys version is
+                                #    obtained from tools/yosys/docs/source/conf.py
        $0 -constant-build-dir
                                 #  Use constant build directory, instead of
                                 #    random one.
@@ -312,6 +325,7 @@ EOF
 
 # default args
 OR_INSTALLER_ARGS="-eqy"
+YOSYS_VER=""
 # default prefix
 PREFIX=""
 # default option
@@ -351,6 +365,9 @@ while [ "$#" -gt 0 ]; do
         -ci)
             CI="yes"
             OR_INSTALLER_ARGS="${OR_INSTALLER_ARGS} -save-deps-prefixes=/etc/openroad_deps_prefixes.txt"
+            ;;
+        -yosys-ver=*)
+            YOSYS_VER=${1#*=}
             ;;
         -prefix=*)
             OR_INSTALLER_ARGS="${OR_INSTALLER_ARGS} $1"
