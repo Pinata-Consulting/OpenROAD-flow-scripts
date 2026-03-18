@@ -2,6 +2,10 @@ export PLATFORM               = rapidus2hp
 
 export DESIGN_NAME            = cva6
 
+ifeq ($(FLOW_VARIANT), verific)
+	export SYNTH_HDL_FRONTEND = verific
+endif
+
 # Some files are listed specifically vs. sorted wilcard to control the order (makes Verific happy)
 export SRC_HOME = $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)
 export VERILOG_FILES          = $(sort $(wildcard $(SRC_HOME)/common/local/util/*.sv)) \
@@ -64,8 +68,8 @@ export VERILOG_FILES          = $(sort $(wildcard $(SRC_HOME)/common/local/util/
 	$(SRC_HOME)/core/cvxif_example/include/cvxif_instr_pkg.sv \
 	$(sort $(wildcard $(SRC_HOME)/core/frontend/*.sv)) \
 	$(SRC_HOME)/vendor/pulp-platform/tech_cells_generic/src/rtl/tc_sram.sv \
-	$(PLATFORM_DIR)/ram/verilog/fakeram7_64x256_shim.sv \
-	$(PLATFORM_DIR)/ram/verilog/sacrls0g0d1p64x256m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.sv \
+	$(PLATFORM_DIR)/ram/verilog/fakeram7_64x256_shim_half.sv \
+	$(PLATFORM_DIR)/ram/verilog/sacrls0g0d1p64x128m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.sv \
 	$(PLATFORM_DIR)/ram/verilog/fakeram7_128x64_shim.sv \
 	$(PLATFORM_DIR)/ram/verilog/sacrls0g0d1p128x64m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.sv \
 	$(PLATFORM_DIR)/ram/verilog/fakeram7_64x28_shim.sv \
@@ -79,41 +83,54 @@ export VERILOG_INCLUDE_DIRS = $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/core/include
 
 export VERILOG_DEFINES += -D HPDCACHE_ASSERT_OFF
 
-export ADDITIONAL_LEFS = $(PLATFORM_DIR)/ram/lef/sacrls0g0d1p64x256m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lef \
+export ADDITIONAL_LEFS = $(PLATFORM_DIR)/ram/lef/sacrls0g0d1p64x128m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lef \
 			 $(PLATFORM_DIR)/ram/lef/sacrls0g0d1p128x64m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lef \
 			 $(PLATFORM_DIR)/ram/lef/sacrls0g0d1p64x28m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lef \
 			 $(PLATFORM_DIR)/ram/lef/sacrls0g0d1p64x25m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lef
 
-export ADDITIONAL_LIBS += $(PLATFORM_DIR)/ram/lib/sacrls0g0d1p64x256m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lib \
+export ADDITIONAL_LIBS += $(PLATFORM_DIR)/ram/lib/sacrls0g0d1p64x128m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lib \
 			 $(PLATFORM_DIR)/ram/lib/sacrls0g0d1p128x64m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lib \
 			 $(PLATFORM_DIR)/ram/lib/sacrls0g0d1p64x28m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lib \
 			 $(PLATFORM_DIR)/ram/lib/sacrls0g0d1p64x25m2b1w0c1p0d0i0s0cr0rr0rm4rw00ms0.lib
 
-export SDC_FILE               = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NAME)/constraint.sdc
+
+.DEFAULT_SDC_FILE  = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.sdc
+._0P2A_6T_SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint_0.2a_6T.sdc
+._0P2A_8T_SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint_0.2a_8T.sdc
+._0P15_8T_SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint_0.15_8T.sdc
+._0P3S_6T_SDC_FILE  = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint_0.3s_6T.sdc
+._0P3S_8T_SDC_FILE  = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint_0.3s_8T.sdc
+
+# Use $(if) to defer conditional eval until all makefiles are read
+export SDC_FILE = $(strip \
+    $(if $(filter 0.2a,$(RAPIDUS_PDK_VERSION)), \
+        $(if $(filter ra02h138_DST_45CPP,$(PLACE_SITE)), \
+            $(._0P2A_6T_SDC_FILE), \
+            $(._0P2A_8T_SDC_FILE) \
+        ), \
+        $(if $(filter 0.15,$(RAPIDUS_PDK_VERSION)), \
+            $(if $(filter ra02h184_HST_45CPP,$(PLACE_SITE)), \
+                $(._0P15_8T_SDC_FILE), \
+                $(.DEFAULT_SDC_FILE) \
+            ), \
+            $(if $(filter 0.3s,$(RAPIDUS_PDK_VERSION)), \
+                $(if $(filter ra02h138_DST_45CPP,$(PLACE_SITE)), \
+                    $(._0P3S_6T_SDC_FILE), \
+                    $(._0P3S_8T_SDC_FILE) \
+                ), \
+                $(.DEFAULT_SDC_FILE) \
+            ) \
+        ) \
+    ))
 
 # Must be defined before the ifeq's
-export SYNTH_HDL_FRONTEND  = slang
+export SYNTH_HDL_FRONTEND  ?= slang
 export SYNTH_HIERARCHICAL = 1
 
-ifeq ($(SYNTH_HDL_FRONTEND),verific)
-  # Reduce utilization for verific since it runs into issues with DPL not being
-  # able to place instances or with one-site gap/overlap issues
-  export CORE_UTILIZATION       = 45
-else
-  # Reduce the amount of resizing done between GPL and DPL
-  export EARLY_SIZING_CAP_RATIO = 6
-  ifeq ($(PLACE_SITE),SC6T)
-    # Decrease the utilization so that the tall macros fit
-    export CORE_UTILIZATION       = 50
-  else
-    export CORE_UTILIZATION       = 55
-  endif
-endif
+export CORE_UTILIZATION       = 65
 
 export CORE_MARGIN            = 2
 export MACRO_PLACE_HALO       = 2 2
-
-export PLACE_DENSITY          = 0.65
 
 export ENABLE_DPO = 0
 
@@ -128,3 +145,9 @@ export SYNTH_MINIMUM_KEEP_SIZE ?= 40000
 
 # Remove rvfi_probes_o interface
 export SYNTH_CANONICALIZE_TCL = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NAME)/canonicalize.tcl
+
+export SWAP_ARITH_OPERATORS = 1
+export OPENROAD_HIERARCHICAL = 1
+
+# Until the verilog writer fix is merged
+export LEC_CHECK = 0

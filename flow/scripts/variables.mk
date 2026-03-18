@@ -37,6 +37,10 @@ else
   $(error [ERROR][FLOW] Platform '$(PLATFORM)' not found.)
 endif
 
+# PYTHON_EXE must be defined before including config.mk, as
+# config.mk may use $(shell $(PYTHON_EXE) ...) to generate variables.
+export PYTHON_EXE ?= $(shell command -v python3)
+
 include $(PLATFORM_DIR)/config.mk
 
 # __SPACE__ is a workaround for whitespace hell in "foreach"; there
@@ -70,7 +74,6 @@ export NUM_CORES
 
 #-------------------------------------------------------------------------------
 # setup all commands used within this flow
-export PYTHON_EXE ?= $(shell command -v python3)
 
 export TIME_BIN   ?= env time
 TIME_CMD = $(TIME_BIN) -f 'Elapsed time: %E[h:]min:sec. CPU time: user %U sys %S (%P). Peak memory: %MKB.'
@@ -97,6 +100,8 @@ else
   export OPENSTA_EXE ?= $(abspath $(FLOW_HOME)/../tools/install/OpenROAD/bin/sta)
 endif
 
+OPENROAD_IS_VALID := $(if $(OPENROAD_EXE),$(shell test -x $(OPENROAD_EXE) && echo "true"),)
+
 export OPENROAD_ARGS = -no_init -threads $(NUM_CORES) $(OR_ARGS)
 export OPENROAD_CMD = $(OPENROAD_EXE) -exit $(OPENROAD_ARGS)
 export OPENROAD_NO_EXIT_CMD = $(OPENROAD_EXE) $(OPENROAD_ARGS)
@@ -109,18 +114,22 @@ else
 endif
 export YOSYS_EXE
 
+YOSYS_IS_VALID := $(if $(YOSYS_EXE),$(shell test -x $(YOSYS_EXE) && echo "true"),)
+
 # Use locally installed and built klayout if it exists, otherwise use klayout in path
 KLAYOUT_DIR = $(abspath $(FLOW_HOME)/../tools/install/klayout/)
 KLAYOUT_BIN_FROM_DIR = $(KLAYOUT_DIR)/klayout
 
+KEPLER_FORMAL_EXE ?= $(abspath $(FLOW_HOME)/../tools/install/kepler-formal/bin/kepler-formal)
+export KEPLER_FORMAL_EXE
+
 ifeq ($(wildcard $(KLAYOUT_BIN_FROM_DIR)), $(KLAYOUT_BIN_FROM_DIR))
-KLAYOUT_CMD ?= sh -c 'LD_LIBRARY_PATH=$(dir $(KLAYOUT_BIN_FROM_DIR)) $$0 "$$@"' $(KLAYOUT_BIN_FROM_DIR)
+export KLAYOUT_CMD ?= sh -c 'LD_LIBRARY_PATH=$(dir $(KLAYOUT_BIN_FROM_DIR)) $$0 "$$@"' $(KLAYOUT_BIN_FROM_DIR)
 else
 ifeq ($(KLAYOUT_CMD),)
-KLAYOUT_CMD := $(shell command -v klayout)
+export KLAYOUT_CMD := $(shell command -v klayout)
 endif
 endif
-KLAYOUT_FOUND            = $(if $(KLAYOUT_CMD),,$(error KLayout not found in PATH))
 
 ifneq ($(shell command -v stdbuf),)
   STDBUF_CMD ?= stdbuf -o L
@@ -131,9 +140,6 @@ WRAPPED_LEFS = $(foreach lef,$(notdir $(WRAP_LEFS)),$(OBJECTS_DIR)/lef/$(lef:.le
 WRAPPED_LIBS = $(foreach lib,$(notdir $(WRAP_LIBS)),$(OBJECTS_DIR)/$(lib:.lib=_mod.lib))
 export ADDITIONAL_LEFS += $(WRAPPED_LEFS) $(WRAP_LEFS)
 export LIB_FILES += $(WRAP_LIBS) $(WRAPPED_LIBS)
-
-export DONT_USE_LIBS   = $(patsubst %.lib.gz, %.lib, $(addprefix $(OBJECTS_DIR)/lib/, $(notdir $(LIB_FILES))))
-export DONT_USE_SC_LIB ?= $(firstword $(DONT_USE_LIBS))
 
 # Stream system used for final result (GDS is default): GDS, GSDII, GDS2, OASIS, or OAS
 STREAM_SYSTEM ?= GDS
@@ -163,7 +169,7 @@ export TCLLIBPATH := util/cell-veneer $(TCLLIBPATH)
 export SYNTH_SCRIPT ?= $(SCRIPTS_DIR)/synth.tcl
 export SDC_FILE_CLOCK_PERIOD = $(RESULTS_DIR)/clock_period.txt
 
-export YOSYS_DEPENDENCIES=$(DONT_USE_LIBS) $(WRAPPED_LIBS) $(DFF_LIB_FILE) $(VERILOG_FILES) $(SYNTH_NETLIST_FILES) $(LATCH_MAP_FILE) $(ADDER_MAP_FILE) $(SDC_FILE_CLOCK_PERIOD)
+export YOSYS_DEPENDENCIES=$(LIB_FILES) $(WRAPPED_LIBS) $(DFF_LIB_FILE) $(VERILOG_FILES) $(SYNTH_NETLIST_FILES) $(LATCH_MAP_FILE) $(ADDER_MAP_FILE) $(SDC_FILE_CLOCK_PERIOD)
 
 # Ubuntu 22.04 ships with older than 0.28.11, so support older versions
 # for a while still.
@@ -184,6 +190,7 @@ export RESULTS_ODB = $(notdir $(sort $(wildcard $(RESULTS_DIR)/*.odb)))
 export RESULTS_DEF = $(notdir $(sort $(wildcard $(RESULTS_DIR)/*.def)))
 export RESULTS_GDS = $(notdir $(sort $(wildcard $(RESULTS_DIR)/*.gds)))
 export RESULTS_OAS = $(notdir $(sort $(wildcard $(RESULTS_DIR)/*.oas)))
+export RESULTS_V = $(notdir $(sort $(wildcard $(RESULTS_DIR)/*.v)))
 export GDS_MERGED_FILE = $(RESULTS_DIR)/6_1_merged.$(STREAM_SYSTEM_EXT)
 
 define get_variables
@@ -213,17 +220,6 @@ vars:
 	$(UTILS_DIR)/generate-vars.sh $(OBJECTS_DIR)/vars
 
 .PHONY: print-%
-# Print any variable, for instance: make print-DIE_AREA
 print-%:
-  # HERE BE DRAGONS!
-  #
-  # We have to use /tmp. $(OBJECTS_DIR) may not exist
-  # at $(file) expansion time, which is before commands are run
-  # here, so we can't mkdir -p $(OBJECTS_DIR) either
-  #
-  # We have to use $(file ...) because we want to be able
-  # to print variables that contain newlines.
-	$(file >/tmp/print_tmp$$,$($*))
-	@echo -n "$* = "
-	@cat /tmp/print_tmp$$
-	@rm /tmp/print_tmp$$
+	$(info $*: $($*))
+	@true
