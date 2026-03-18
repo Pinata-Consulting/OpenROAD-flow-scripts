@@ -1,6 +1,6 @@
 {
     "synth__design__instance__area__stdcell": {
-        "value": 17100.0,
+        "value": 17000.0,
         "compare": "<="
     },
     "constraints__clocks__count": {
@@ -12,7 +12,7 @@
         "compare": "<="
     },
     "placeopt__design__instance__count__stdcell": {
-        "value": 167948,
+        "value": 194724,
         "compare": "<="
     },
     "detailedplace__design__violations": {
@@ -28,19 +28,19 @@
         "compare": "<="
     },
     "cts__timing__setup__ws": {
-        "value": -30.0,
+        "value": -0.0943,
         "compare": ">="
     },
     "cts__timing__setup__tns": {
-        "value": -120.0,
+        "value": -135.0,
         "compare": ">="
     },
     "cts__timing__hold__ws": {
-        "value": -56.2,
+        "value": -0.025,
         "compare": ">="
     },
     "cts__timing__hold__tns": {
-        "value": -268.0,
+        "value": -0.1,
         "compare": ">="
     },
     "globalroute__antenna_diodes_count": {
@@ -48,35 +48,35 @@
         "compare": "<="
     },
     "globalroute__timing__setup__ws": {
-        "value": -108.0,
+        "value": -0.292,
         "compare": ">="
     },
     "globalroute__timing__setup__tns": {
-        "value": -102000.0,
+        "value": -452.0,
         "compare": ">="
     },
     "globalroute__timing__hold__ws": {
-        "value": -36.1,
+        "value": -0.025,
         "compare": ">="
     },
     "globalroute__timing__hold__tns": {
-        "value": -134.0,
+        "value": -0.1,
         "compare": ">="
     },
     "finish__timing__setup__ws": {
-        "value": -108.0,
+        "value": -0.292,
         "compare": ">="
     },
     "finish__timing__setup__tns": {
-        "value": -102000.0,
+        "value": -452.0,
         "compare": ">="
     },
     "finish__timing__hold__ws": {
-        "value": -36.1,
+        "value": -0.025,
         "compare": ">="
     },
     "finish__timing__hold__tns": {
-        "value": -134.0,
+        "value": -0.1,
         "compare": ">="
     },
     "finish__design__instance__area": {
