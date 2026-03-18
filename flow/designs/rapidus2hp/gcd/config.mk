@@ -29,4 +29,3 @@ export CORE_UTILIZATION = $(strip $(if $(filter 0.15,$(RAPIDUS_PDK_VERSION)), \
 		45)))
 
 export CORE_MARGIN = .5
-export PLACE_DENSITY = 0.42

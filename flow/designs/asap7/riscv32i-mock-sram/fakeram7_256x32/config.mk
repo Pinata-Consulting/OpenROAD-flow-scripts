@@ -17,3 +17,4 @@ export PLACE_PINS_ARGS = -min_distance 6 -min_distance_in_tracks
 export IO_CONSTRAINTS  = $(DESIGN_HOME)/asap7/riscv32i-mock-sram/fakeram7_256x32/io.tcl
 
 export PDN_TCL                = $(PLATFORM_DIR)/openRoad/pdn/BLOCK_grid_strategy.tcl
+
